@@ -18,8 +18,8 @@ Access useful tools, AI utilities, productivity features, developer resources, a
 ## Run Locally
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 
 Open `http://localhost:3000`.
@@ -27,8 +27,8 @@ Open `http://localhost:3000`.
 ## Build
 
 ```bash
-npm run build
-npm run start
+pnpm run build
+pnpm run start
 ```
 
 ## Structure
