@@ -1,7 +1,8 @@
 {
-  "name": "prism-homepage",
+  "name": "prismspace",
   "version": "1.0.0",
-  "description": "PRISM AI Browser - Developer Homepage",
+  "description": "Prism Space - Your Space on the Internet",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,5 +18,5 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.0"
   },
-  "packageManager": "npm@11.14.1"
+  "packageManager": "pnpm@11.1.3"
 }
