@@ -1,0 +1,1088 @@
+/* Aura Design System v3 — Dev Tools UI */
+
+body.legacy-tool-route {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg) !important;
+  color: var(--ink) !important;
+  font-family: var(--fd) !important;
+  transition: background var(--dur-effects-slow) var(--ease-effects-slow),
+    color var(--dur-effects-default) var(--ease-effects-default) !important;
+}
+
+body.legacy-tool-route * {
+  box-sizing: border-box;
+}
+
+/* ── Layout shells ── */
+body.legacy-tool-route .container,
+body.legacy-tool-route .notepad-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.legacy-tool-route .app:has(.sidebar) {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100vh;
+  height: auto;
+  overflow: auto;
+}
+
+body.legacy-tool-route .app:not(:has(.sidebar)) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+  padding: 24px;
+  min-height: 100vh;
+  height: auto;
+  overflow: auto;
+}
+
+body.legacy-tool-route .shell {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+body.legacy-tool-route .sidebar {
+  padding: 24px;
+  background: var(--surface-2);
+  border-right: 1px solid var(--border);
+  transition: background var(--tn) var(--ease), border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .content,
+body.legacy-tool-route main.content {
+  padding: 24px;
+  display: grid;
+  gap: 20px;
+  align-content: start;
+  overflow: auto;
+}
+
+body.legacy-tool-route .main-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Header / nav ── */
+body.legacy-tool-route .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 0 52px;
+  height: 60px;
+  flex-shrink: 0;
+  background: var(--nav-bg) !important;
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--nav-border) !important;
+  transition: background var(--ts) var(--ease-spatial-default),
+    border-color var(--ts) var(--ease-spatial-default) !important;
+}
+
+body.legacy-tool-route .header h1,
+body.legacy-tool-route .header-title {
+  font: 800 22px/1.05 var(--fd) !important;
+  letter-spacing: -0.04em !important;
+  color: var(--ink) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.legacy-tool-route .header-actions,
+body.legacy-tool-route .header-buttons {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+body.legacy-tool-route .aura-theme-toggle {
+  width: 48px;
+  height: 26px;
+  border-radius: 9999px;
+  background: var(--surface-3);
+  border: 1.5px solid var(--border-2);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  transition: background var(--tn) var(--ease-effects-default),
+    border-color var(--tn) var(--ease-effects-default);
+}
+
+body.legacy-tool-route .aura-theme-toggle::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--p);
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    background var(--tn) var(--ease-effects-default);
+}
+
+[data-theme="dark"] body.legacy-tool-route .aura-theme-toggle::before {
+  transform: translateX(22px);
+}
+
+body.legacy-tool-route .close-btn,
+body.legacy-tool-route .header > button:not(.aura-theme-toggle):not(.tab-btn):not(.action-btn) {
+  font: 700 13px var(--fd) !important;
+  background: var(--error-soft) !important;
+  border: 1.5px solid var(--error) !important;
+  border-radius: 9999px !important;
+  color: var(--error) !important;
+  padding: 8px 18px !important;
+  cursor: pointer;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    box-shadow var(--tf) var(--ease-effects-fast),
+    background var(--tf) var(--ease-effects-fast) !important;
+}
+
+body.legacy-tool-route .close-btn:hover,
+body.legacy-tool-route .header > button:not(.aura-theme-toggle):hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: var(--shadow-raised) !important;
+}
+
+body.legacy-tool-route .close-btn:active {
+  transform: scale(0.97) !important;
+}
+
+/* ── Banners ── */
+body.legacy-tool-route .internet-banner,
+body.legacy-tool-route .inet-banner {
+  background: var(--w-soft) !important;
+  color: var(--w) !important;
+  border-bottom: 1px solid var(--border) !important;
+  padding: 8px 20px;
+  font: 400 11px/1.6 var(--fm) !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── Toolbars / action bars ── */
+body.legacy-tool-route .toolbar,
+body.legacy-tool-route .actions-bar,
+body.legacy-tool-route .lang-row,
+body.legacy-tool-route .bottom-bar,
+body.legacy-tool-route .export-bar,
+body.legacy-tool-route .history-bar,
+body.legacy-tool-route .tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 12px 20px;
+  background: var(--surface-2) !important;
+  border-bottom: 1px solid var(--border) !important;
+  flex-shrink: 0;
+  transition: background var(--tn) var(--ease), border-color var(--tn) var(--ease) !important;
+}
+
+body.legacy-tool-route .tabs {
+  padding: 0 20px;
+}
+
+body.legacy-tool-route .row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+body.legacy-tool-route .row.wrap {
+  flex-wrap: wrap;
+}
+
+body.legacy-tool-route .toolbar {
+  justify-content: space-between;
+}
+
+/* ── Buttons ── */
+body.legacy-tool-route button,
+body.legacy-tool-route .action-btn,
+body.legacy-tool-route .depth-btn,
+body.legacy-tool-route .run-main-btn,
+body.legacy-tool-route .conv-btn,
+body.legacy-tool-route .quiz-btn,
+body.legacy-tool-route .save-btn,
+body.legacy-tool-route .copy-btn,
+body.legacy-tool-route .add-crit-btn,
+body.legacy-tool-route .analyze-btn,
+body.legacy-tool-route .export-btn,
+body.legacy-tool-route .explain-toggle,
+body.legacy-tool-route .hist-chip,
+body.legacy-tool-route .swap-btn,
+body.legacy-tool-route .tab-btn,
+body.legacy-tool-route .chip,
+body.legacy-tool-route .button-group button {
+  font: 700 13px var(--fd) !important;
+  letter-spacing: -0.01em;
+  border-radius: 9999px !important;
+  border: 1.5px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--ink) !important;
+  padding: 8px 16px !important;
+  cursor: pointer;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    box-shadow var(--tf) var(--ease-effects-fast),
+    background var(--tf) var(--ease-effects-fast),
+    border-color var(--tf) var(--ease-effects-fast),
+    color var(--tf) var(--ease-effects-fast) !important;
+}
+
+body.legacy-tool-route .tab-btn {
+  border-radius: 10px 10px 0 0 !important;
+  border-bottom: 2px solid transparent !important;
+  background: transparent !important;
+  color: var(--ink-3) !important;
+}
+
+body.legacy-tool-route .tab-btn.active,
+body.legacy-tool-route .tab-btn.on {
+  color: var(--p) !important;
+  border-bottom-color: var(--p) !important;
+  background: var(--p-soft) !important;
+}
+
+body.legacy-tool-route button.primary,
+body.legacy-tool-route .run-main-btn,
+body.legacy-tool-route .analyze-btn {
+  background: var(--p) !important;
+  border-color: var(--p-mid) !important;
+  color: var(--bg) !important;
+  box-shadow: var(--shadow-raised) !important;
+}
+
+body.legacy-tool-route button.danger {
+  background: var(--error-soft) !important;
+  border-color: var(--error) !important;
+  color: var(--error) !important;
+}
+
+body.legacy-tool-route button:hover,
+body.legacy-tool-route .action-btn:hover,
+body.legacy-tool-route .tab-btn:hover,
+body.legacy-tool-route .chip:hover {
+  border-color: var(--p) !important;
+  background: var(--p-soft) !important;
+  color: var(--p) !important;
+  box-shadow: var(--shadow-raised) !important;
+  transform: translateY(-2px) scale(1.02) !important;
+}
+
+body.legacy-tool-route button.primary:hover,
+body.legacy-tool-route .run-main-btn:hover {
+  background: var(--p-mid) !important;
+  color: var(--bg) !important;
+}
+
+body.legacy-tool-route button:active,
+body.legacy-tool-route .action-btn:active {
+  transform: scale(0.97) !important;
+}
+
+body.legacy-tool-route .action-btn.active,
+body.legacy-tool-route .chip.on,
+body.legacy-tool-route .explain-toggle.on {
+  background: var(--p) !important;
+  border-color: var(--p-mid) !important;
+  color: var(--bg) !important;
+}
+
+body.legacy-tool-route .tree-toggle {
+  background: none !important;
+  border: none !important;
+  color: var(--p) !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ── Inputs ── */
+body.legacy-tool-route input,
+body.legacy-tool-route textarea,
+body.legacy-tool-route select,
+body.legacy-tool-route .input-textarea,
+body.legacy-tool-route .code-area,
+body.legacy-tool-route .field-input,
+body.legacy-tool-route .field-textarea,
+body.legacy-tool-route .demo-inp,
+body.legacy-tool-route .lang-select {
+  background: var(--bg) !important;
+  border: 1.5px solid var(--border) !important;
+  border-radius: 12px !important;
+  color: var(--ink) !important;
+  font: 400 14px/1.7 var(--fd) !important;
+  padding: 11px 16px !important;
+  outline: none !important;
+  transition: border-color var(--tf) var(--ease-effects-fast),
+    box-shadow var(--tf) var(--ease-effects-fast),
+    background var(--tn) var(--ease) !important;
+}
+
+body.legacy-tool-route .code-area,
+body.legacy-tool-route textarea[id*="Output"],
+body.legacy-tool-route .token-counter {
+  font-family: var(--fm) !important;
+}
+
+body.legacy-tool-route input:focus,
+body.legacy-tool-route textarea:focus,
+body.legacy-tool-route select:focus {
+  border-color: var(--p) !important;
+  box-shadow: 0 0 0 3px var(--p-soft) !important;
+}
+
+body.legacy-tool-route .item-text {
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+
+body.legacy-tool-route select option {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+body.legacy-tool-route .lang-select.hidden {
+  display: none;
+}
+
+/* ── Panes / cards / panels ── */
+body.legacy-tool-route .content {
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+}
+
+body.legacy-tool-route .tab-pane {
+  display: none;
+  flex: 1;
+  overflow: auto;
+}
+
+body.legacy-tool-route .tab-pane.active {
+  display: flex;
+  flex-direction: column;
+}
+
+body.legacy-tool-route .split-pane {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+body.legacy-tool-route .pane,
+body.legacy-tool-route .left-pane,
+body.legacy-tool-route .right-pane,
+body.legacy-tool-route .input-col,
+body.legacy-tool-route .output-col,
+body.legacy-tool-route .panel,
+body.legacy-tool-route .section-card,
+body.legacy-tool-route .section-block,
+body.legacy-tool-route .quiz-card,
+body.legacy-tool-route .comp-card,
+body.legacy-tool-route .result-area,
+body.legacy-tool-route .output-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 24px !important;
+  overflow: hidden;
+  color: var(--ink) !important;
+  transition: background var(--tn) var(--ease), border-color var(--tn) var(--ease),
+    transform var(--dur-spatial-fast) var(--ease-spatial-fast) !important;
+}
+
+body.legacy-tool-route .panel {
+  padding: 20px;
+  overflow: visible;
+}
+
+body.legacy-tool-route .pane-left {
+  border-right: 1px solid var(--border);
+}
+
+body.legacy-tool-route .pane-header {
+  background: var(--surface-2) !important;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border) !important;
+  font: 400 11px var(--fm) !important;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--p-bright) !important;
+}
+
+body.legacy-tool-route .pane-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+body.legacy-tool-route .pane-label,
+body.legacy-tool-route .field-label,
+body.legacy-tool-route .lbl {
+  font: 400 11px var(--fm) !important;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-bright) !important;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+body.legacy-tool-route .pane-label .dot,
+body.legacy-tool-route .token-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--a);
+}
+
+body.legacy-tool-route .pane-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+body.legacy-tool-route .input-textarea,
+body.legacy-tool-route .pane-content textarea {
+  flex: 1;
+  min-height: 120px;
+  resize: none;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+body.legacy-tool-route .input-textarea:focus,
+body.legacy-tool-route .pane-content textarea:focus {
+  box-shadow: none !important;
+}
+
+/* ── Typography helpers ── */
+body.legacy-tool-route h1 {
+  font: 800 clamp(24px, 4vw, 32px)/1.05 var(--fd);
+  letter-spacing: -0.04em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+body.legacy-tool-route h2 {
+  font: 800 clamp(20px, 3vw, 26px)/1.1 var(--fd);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+body.legacy-tool-route h3 {
+  font: 700 18px/1.2 var(--fd);
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+
+body.legacy-tool-route .muted,
+body.legacy-tool-route .small {
+  color: var(--ink-3) !important;
+  font-size: 13px;
+}
+
+body.legacy-tool-route .result-placeholder,
+body.legacy-tool-route .output-placeholder,
+body.legacy-tool-route .placeholder-msg,
+body.legacy-tool-route .hist-empty,
+body.legacy-tool-route .thinking-note,
+body.legacy-tool-route .empty {
+  color: var(--ink-3) !important;
+  text-align: center;
+  padding: 28px;
+  border: 1px dashed var(--border);
+  border-radius: 16px;
+}
+
+/* ── Status messages ── */
+body.legacy-tool-route .error,
+body.legacy-tool-route .error-msg {
+  color: var(--error) !important;
+  background: var(--error-soft) !important;
+  border-left: 3px solid var(--error) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  margin-bottom: 12px;
+}
+
+body.legacy-tool-route .success {
+  color: var(--p) !important;
+  background: var(--p-soft) !important;
+  border-left: 3px solid var(--p) !important;
+  border-radius: 12px !important;
+  padding: 12px 16px !important;
+  margin-bottom: 12px;
+}
+
+/* ── Tree view ── */
+body.legacy-tool-route .tree-item {
+  margin-left: 1rem;
+  color: var(--ink-3);
+  font: 400 13px/1.6 var(--fm);
+}
+
+body.legacy-tool-route .tree-key {
+  color: var(--p) !important;
+  font-weight: 700;
+}
+
+body.legacy-tool-route .tree-value {
+  color: var(--a-dark) !important;
+}
+
+/* ── Tables ── */
+body.legacy-tool-route table,
+body.legacy-tool-route .match-table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 400 13px/1.6 var(--fm);
+}
+
+body.legacy-tool-route th,
+body.legacy-tool-route td {
+  border: 1px solid var(--border) !important;
+  padding: 10px 12px;
+  text-align: left;
+  color: var(--ink-2) !important;
+}
+
+body.legacy-tool-route th {
+  background: var(--surface-2) !important;
+  color: var(--p-bright) !important;
+  font: 400 10px var(--fm);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+body.legacy-tool-route tr:nth-child(even) {
+  background: var(--surface-2);
+}
+
+/* ── Checklist / productivity tools ── */
+body.legacy-tool-route .checklist-pill {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    background var(--tn) var(--ease), border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .checklist-pill.active {
+  border-color: var(--p) !important;
+  background: var(--p-soft) !important;
+}
+
+body.legacy-tool-route .checklist-pill:hover {
+  transform: translateY(-2px);
+  border-color: var(--p);
+}
+
+body.legacy-tool-route .item {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  transition: background var(--tn) var(--ease), border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .item.checked {
+  opacity: 0.65;
+}
+
+body.legacy-tool-route .item.checked .item-text {
+  text-decoration: line-through;
+  color: var(--ink-3) !important;
+}
+
+body.legacy-tool-route .item[draggable="true"] {
+  cursor: grab;
+}
+
+body.legacy-tool-route .item.dragging {
+  opacity: 0.45;
+}
+
+body.legacy-tool-route .drag-handle {
+  color: var(--ink-3);
+  user-select: none;
+}
+
+body.legacy-tool-route .template-card {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: grid;
+  gap: 8px;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .template-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--p-container);
+}
+
+body.legacy-tool-route .template-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+body.legacy-tool-route .checklist-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+body.legacy-tool-route .items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+body.legacy-tool-route .progress-track {
+  height: 10px;
+  border-radius: 9999px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+body.legacy-tool-route .progress-bar,
+body.legacy-tool-route .score-fill {
+  height: 100%;
+  background: var(--p) !important;
+  transition: width var(--dur-spatial-fast) var(--ease-spatial-fast);
+}
+
+/* ── AI tool specifics ── */
+body.legacy-tool-route .crit-item {
+  border: 1.5px solid var(--border) !important;
+  background: var(--surface) !important;
+  color: var(--ink-2) !important;
+  border-radius: 12px;
+  padding: 12px;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    background var(--tn) var(--ease), border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .crit-item:hover {
+  border-color: var(--p) !important;
+  background: var(--p-soft) !important;
+  transform: translateY(-2px);
+}
+
+body.legacy-tool-route .crit-item.checked {
+  border-color: var(--p) !important;
+  background: var(--p-soft) !important;
+  color: var(--p) !important;
+}
+
+body.legacy-tool-route .streaming-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 16px;
+  background: var(--a) !important;
+  animation: blink var(--dur-effects-slow) var(--ease-effects-default) infinite;
+  vertical-align: middle;
+}
+
+body.legacy-tool-route .token-dot.idle {
+  background: var(--border-2) !important;
+  animation: none !important;
+}
+
+body.legacy-tool-route .token-dot:not(.idle) {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+body.legacy-tool-route .concept-link {
+  color: var(--p) !important;
+  border-bottom: 1px solid var(--p-container);
+}
+
+body.legacy-tool-route .quiz-ans {
+  border-radius: 12px;
+  border-left: 2px solid var(--p);
+  background: var(--p-soft);
+  padding: 12px;
+}
+
+body.legacy-tool-route .rec-title,
+body.legacy-tool-route .section-hdr-title {
+  color: var(--ink) !important;
+  font: 800 18px/1.2 var(--fd) !important;
+  letter-spacing: -0.03em !important;
+  text-transform: none !important;
+}
+
+body.legacy-tool-route .section-hdr:hover {
+  background: var(--surface-2) !important;
+}
+
+body.legacy-tool-route .button-group {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* ── Notepad ── */
+body.legacy-tool-route .notepad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 24px;
+  height: 60px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(24px);
+  border-bottom: 1px solid var(--nav-border);
+  flex-shrink: 0;
+}
+
+body.legacy-tool-route .notepad-title {
+  font: 800 20px/1.1 var(--fd);
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+body.legacy-tool-route .notepad-stats {
+  font: 400 12px var(--fm);
+  color: var(--ink-3);
+  display: flex;
+  gap: 12px;
+}
+
+body.legacy-tool-route .notepad-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  flex-wrap: wrap;
+}
+
+body.legacy-tool-route .toolbar-btn,
+body.legacy-tool-route .close-notepad-btn {
+  font: 700 13px var(--fd) !important;
+  background: var(--surface) !important;
+  border: 1.5px solid var(--border) !important;
+  color: var(--ink) !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  min-width: 36px;
+  height: 36px;
+  cursor: pointer;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    background var(--tf) var(--ease-effects-fast),
+    border-color var(--tf) var(--ease-effects-fast) !important;
+}
+
+body.legacy-tool-route .toolbar-btn:hover,
+body.legacy-tool-route .close-notepad-btn:hover {
+  border-color: var(--p) !important;
+  background: var(--p-soft) !important;
+  color: var(--p) !important;
+  transform: translateY(-2px) !important;
+}
+
+body.legacy-tool-route .toolbar-btn.active {
+  background: var(--p) !important;
+  border-color: var(--p-mid) !important;
+  color: var(--bg) !important;
+}
+
+body.legacy-tool-route .toolbar-separator {
+  width: 1px;
+  height: 24px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+body.legacy-tool-route .notepad-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-2);
+  overflow-x: auto;
+}
+
+body.legacy-tool-route .notepad-tab,
+body.legacy-tool-route .tab-add {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink-2);
+  cursor: pointer;
+  font: 500 13px var(--fd);
+  white-space: nowrap;
+  transition: all var(--tn) var(--ease-effects-default);
+}
+
+body.legacy-tool-route .notepad-tab.active {
+  border-color: var(--p);
+  background: var(--p-soft);
+  color: var(--p);
+}
+
+body.legacy-tool-route .saved-notes-section {
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+body.legacy-tool-route .saved-notes-title {
+  font: 700 14px var(--fd);
+  color: var(--ink);
+}
+
+body.legacy-tool-route .saved-note-item {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: transform var(--dur-spatial-fast) var(--ease-spatial-fast),
+    border-color var(--tn) var(--ease);
+}
+
+body.legacy-tool-route .saved-note-item:hover {
+  border-color: var(--p);
+  transform: translateY(-2px);
+}
+
+body.legacy-tool-route .editor-wrapper {
+  flex: 1;
+  padding: 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+body.legacy-tool-route .editor-area {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  color: var(--ink);
+  font: 400 14px/1.7 var(--fm);
+  resize: none;
+  outline: none;
+  transition: border-color var(--tf) var(--ease-effects-fast),
+    box-shadow var(--tf) var(--ease-effects-fast);
+}
+
+body.legacy-tool-route .editor-area:focus {
+  border-color: var(--p);
+  box-shadow: 0 0 0 3px var(--p-soft);
+}
+
+/* ── Focus timer ── */
+body.legacy-tool-route .hero-panel .hero {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  gap: 18px;
+  min-height: 420px;
+}
+
+body.legacy-tool-route .phase {
+  font: 400 11px var(--fm);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--p-bright);
+}
+
+body.legacy-tool-route .ring {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at center, var(--surface) 58%, transparent 59%),
+    conic-gradient(var(--p) calc(var(--progress, 0) * 1%), var(--surface-3) 0);
+  box-shadow: var(--shadow-float);
+  border: 1px solid var(--border);
+}
+
+body.legacy-tool-route .ring .time {
+  font: 800 clamp(56px, 10vw, 80px)/1 var(--fd);
+  letter-spacing: -0.05em;
+  color: var(--ink);
+}
+
+body.legacy-tool-route .ring .task,
+body.legacy-tool-route .task {
+  font: 400 15px/1.5 var(--fd);
+  color: var(--ink-2);
+}
+
+body.legacy-tool-route .dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+}
+
+body.legacy-tool-route .dot.done {
+  background: var(--p);
+  border-color: var(--p-mid);
+}
+
+body.legacy-tool-route .stat {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font: 400 14px var(--fd);
+}
+
+body.legacy-tool-route .stat strong {
+  display: block;
+  font: 800 28px/1.1 var(--fd);
+  color: var(--ink);
+  margin-top: 8px;
+}
+
+body.legacy-tool-route .settings-grid,
+body.legacy-tool-route .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+body.legacy-tool-route label {
+  display: grid;
+  gap: 6px;
+  font: 400 13px var(--fd);
+  color: var(--ink-3);
+}
+
+body.legacy-tool-route .controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+body.legacy-tool-route .header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── Scrollbars ── */
+body.legacy-tool-route ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+body.legacy-tool-route ::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+
+body.legacy-tool-route ::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 9999px;
+}
+
+body.legacy-tool-route ::placeholder {
+  color: var(--ink-3) !important;
+  opacity: 1 !important;
+}
+
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  body.legacy-tool-route .app {
+    grid-template-columns: 1fr;
+  }
+
+  body.legacy-tool-route .sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  body.legacy-tool-route .shell {
+    grid-template-columns: 1fr;
+  }
+
+  body.legacy-tool-route .split-pane {
+    flex-direction: column;
+  }
+
+  body.legacy-tool-route .header {
+    padding: 0 20px;
+  }
+}
+
+@media print {
+  body.legacy-tool-route .sidebar,
+  body.legacy-tool-route .toolbar,
+  body.legacy-tool-route .templates-panel,
+  body.legacy-tool-route .aura-theme-toggle {
+    display: none !important;
+  }
+}

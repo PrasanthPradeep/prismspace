@@ -976,7 +976,56 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                     updateSystemInfo();
                 }
             });
+
+            initAuraDevSpace();
         });
+
+        const AURA_THEME_KEY = 'aura-theme';
+
+        function getAuraTheme() {
+            return localStorage.getItem(AURA_THEME_KEY) || 'light';
+        }
+
+        function setAuraTheme(theme) {
+            document.documentElement.dataset.theme = theme;
+            localStorage.setItem(AURA_THEME_KEY, theme);
+        }
+
+        function toggleAuraTheme() {
+            const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            setAuraTheme(next);
+        }
+
+        function initAuraDevSpace() {
+            setAuraTheme(getAuraTheme());
+
+            const header = document.querySelector('.dev-space-header');
+            if (!header || header.dataset.auraReady === 'true') {
+                return;
+            }
+
+            header.dataset.auraReady = 'true';
+
+            const title = header.querySelector('.dev-space-title');
+            if (title && !title.querySelector('em')) {
+                title.innerHTML = 'Dev <em>Space</em>';
+            }
+
+            if (!header.querySelector('.dev-space-label')) {
+                const label = document.createElement('div');
+                label.className = 'dev-space-label';
+                label.textContent = 'Developer Tools';
+                header.insertBefore(label, header.firstChild);
+            }
+
+            if (!header.querySelector('.dev-space-subtitle')) {
+                const subtitle = document.createElement('p');
+                subtitle.className = 'dev-space-subtitle';
+                subtitle.textContent = 'Utilities, productivity, and AI tools — built with the Aura design system.';
+                header.appendChild(subtitle);
+            }
+
+        }
 
         // Scroll to Dev Space function
         function scrollToDevSpace() {

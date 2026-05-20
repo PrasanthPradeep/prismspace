@@ -1,0 +1,124 @@
+/* Aura Design System v3 — shared tokens */
+
+@import url('https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;1,9..144,200;1,9..144,300&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+  --p: #2D5016;
+  --p-mid: #3D6B20;
+  --p-bright: #4F8A2A;
+  --p-soft: #EDF4E6;
+  --p-container: #C8E6B0;
+  --a: #8FAF00;
+  --a-dark: #6D8600;
+  --a-soft: #F5FAE0;
+  --a-container: #DDF0A0;
+  --t: #A0724A;
+  --t-dark: #7A5235;
+  --t-soft: #F5EDE4;
+  --t-container: #E8D0BC;
+  --s: #C8A96A;
+  --s-dark: #9A7A3E;
+  --s-soft: #FAF5EB;
+  --w: #D97706;
+  --w-soft: #FEF3C7;
+  --bg: #F8F9F4;
+  --surface: #FFFFFF;
+  --surface-2: #F1F4EC;
+  --surface-3: #E6ECDB;
+  --ink: #141A0E;
+  --ink-2: #3A4830;
+  --ink-3: #7A8F6A;
+  --border: #D8E2C8;
+  --border-2: #BECE9E;
+  --error: #C0392B;
+  --error-soft: #FDECEA;
+  --nav-bg: rgba(248, 249, 244, 0.92);
+  --nav-border: rgba(216, 226, 200, 0.8);
+  --fd: 'Cabinet Grotesk', sans-serif;
+  --fs: 'Fraunces', Georgia, serif;
+  --fm: 'Fira Code', monospace;
+  --ease-spatial-fast: cubic-bezier(0.42, 1.67, 0.21, 0.90);
+  --ease-spatial-default: cubic-bezier(0.38, 1.21, 0.22, 1.00);
+  --ease-spatial-slow: cubic-bezier(0.39, 1.29, 0.35, 0.98);
+  --ease-effects-fast: cubic-bezier(0.31, 0.94, 0.34, 1.00);
+  --ease-effects-default: cubic-bezier(0.34, 0.80, 0.34, 1.00);
+  --ease-effects-slow: cubic-bezier(0.34, 0.88, 0.34, 1.00);
+  --dur-spatial-fast: 350ms;
+  --dur-spatial-default: 500ms;
+  --dur-spatial-slow: 650ms;
+  --dur-effects-fast: 150ms;
+  --dur-effects-default: 200ms;
+  --dur-effects-slow: 300ms;
+  --ease: var(--ease-effects-default);
+  --spring: var(--ease-spatial-fast);
+  --tf: var(--dur-effects-fast);
+  --tn: var(--dur-effects-default);
+  --ts: var(--dur-spatial-default);
+  --shadow-raised: 0 4px 18px rgba(45, 80, 22, 0.14);
+  --shadow-float: 0 8px 24px rgba(45, 80, 22, 0.12);
+  --shadow-lift: 0 10px 28px rgba(45, 80, 22, 0.22);
+}
+
+[data-theme="dark"] {
+  --p: #8DC85A;
+  --p-mid: #A0D970;
+  --p-bright: #B4EA84;
+  --p-soft: #152808;
+  --p-container: #2A4D14;
+  --a: #C8E040;
+  --a-dark: #DEFA50;
+  --a-soft: #1A2200;
+  --a-container: #2E3A00;
+  --t: #D4A070;
+  --t-dark: #E8B880;
+  --t-soft: #1E1008;
+  --t-container: #3C2018;
+  --s: #E8CC8A;
+  --s-dark: #F0DC9E;
+  --s-soft: #1A1200;
+  --w: #FBD34D;
+  --w-soft: #1C1400;
+  --bg: #0C1208;
+  --surface: #141C0E;
+  --surface-2: #1C2816;
+  --surface-3: #263420;
+  --ink: #DDEEC8;
+  --ink-2: #A8C890;
+  --ink-3: #608040;
+  --border: #2A3C1E;
+  --border-2: #3C5428;
+  --error: #FF6B6B;
+  --error-soft: #2C0E0E;
+  --nav-bg: rgba(12, 18, 8, 0.92);
+  --nav-border: rgba(42, 60, 30, 0.8);
+  --shadow-raised: 0 4px 18px rgba(141, 200, 90, 0.12);
+  --shadow-float: 0 8px 24px rgba(141, 200, 90, 0.10);
+  --shadow-lift: 0 10px 28px rgba(141, 200, 90, 0.18);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.6); opacity: 0.5; }
+}
+
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(143, 175, 0, 0.4); }
+  50% { transform: scale(1.2); box-shadow: 0 0 0 12px rgba(143, 175, 0, 0); }
+}
+
+@keyframes morphBlob {
+  0%, 100% { border-radius: 60% 40% 70% 30% / 50% 60% 40% 60%; }
+  33% { border-radius: 30% 70% 40% 60% / 60% 30% 70% 40%; }
+  66% { border-radius: 50% 50% 30% 70% / 40% 70% 30% 60%; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
