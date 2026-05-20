@@ -1,6 +1,19 @@
-# PRISM AI Browser - Developer Homepage
+<h1 align="center">Prism Space</h1>
+<p align="center">Your Space on the Internet</p>
 
-Next.js migration of the PRISM developer homepage and Dev Space tools.
+<p align="center">
+  <img width="500" height="500" alt="prismSpaceRebranded" src="https://github.com/user-attachments/assets/0033aefe-8105-44b4-8b9a-c056d00666da" />
+</p>
+
+## What is Prism Space?
+
+Prism Space is a customizable browser workspace built for the modern web.
+
+Access useful tools, AI utilities, productivity features, developer resources, and curated experiences — all from one beautiful start page.
+
+---
+
+# Contribution Development
 
 ## Run Locally
 
@@ -43,3 +56,7 @@ Existing static paths are preserved through Next rewrites:
 ## AI Tools
 
 The AI tools keep their original browser behavior and proxy/API wiring from the static version. The config/status helper is available at `/config-loader`.
+
+---
+
+<p align="center">Build by <a href="prismbrowser.tech">Prism AI Labs</a></p>
