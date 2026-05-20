@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Toolkit</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        .header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tabs {
+            display: flex;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0 1rem;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+        .tab-btn:hover {
+            color: #00ff88;
+        }
+        .content {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+        }
+        .tab-pane {
+            display: none;
+            flex: 1;
+            overflow: auto;
+        }
+        .tab-pane.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .split-pane {
+            display: flex;
+            gap: 1rem;
+            flex: 1;
+        }
+        .pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .pane-header {
+            background: #1a1f3a;
+            padding: 0.75rem;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        .pane-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: #0a0e27;
+            color: #e0e0e0;
+            border: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem;
+            resize: none;
+        }
+        input {
+            background: #1a1f3a;
+            color: #00ff88;
+            border: 1px solid #333;
+            padding: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        .error {
+            color: #ff4444;
+            background: rgba(255, 68, 68, 0.1);
+            padding: 0.75rem;
+            border-left: 3px solid #ff4444;
+            margin-bottom: 1rem;
+            border-radius: 2px;
+        }
+        .success {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.75rem;
+            border-left: 3px solid #00ff88;
+            margin-bottom: 1rem;
+            border-radius: 2px;
+        }
+        .tree-item {
+            margin-left: 1rem;
+            color: #888;
+        }
+        .tree-key {
+            color: #00ff88;
+            font-weight: bold;
+        }
+        .tree-value {
+            color: #88ccff;
+        }
+        .tree-toggle {
+            background: none;
+            border: none;
+            color: #00ff88;
+            cursor: pointer;
+            padding: 0;
+            width: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .match-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+        }
+        .match-table th,
+        .match-table td {
+            border: 1px solid #333;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .match-table th {
+            background: #1a1f3a;
+            color: #00ff88;
+        }
+        .match-table tr:nth-child(even) {
+            background: rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 JSON Toolkit</h1>
+            <button onclick="try { parent.postMessage({action: 'closeJsonToolkit'}, '*'); } catch(e) { window.close(); }">Close</button>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'format')">Format</button>
+            <button class="tab-btn" onclick="switchTab(event, 'tree')">Tree View</button>
+            <button class="tab-btn" onclick="switchTab(event, 'query')">JSONPath</button>
+            <button class="tab-btn" onclick="switchTab(event, 'diff')">Diff</button>
+            <button class="tab-btn" onclick="switchTab(event, 'transform')">Transform</button>
+        </div>
+
+        <div class="content">
+            <!-- Format Tab -->
+            <div id="format" class="tab-pane active">
+                <div class="split-pane">
+                    <div class="pane">
+                        <div class="pane-header">Input JSON</div>
+                        <div class="pane-content">
+                            <textarea id="formatInput" placeholder="Paste JSON here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pane">
+                        <div class="pane-header">Output</div>
+                        <div class="pane-content">
+                            <div id="formatError"></div>
+                            <textarea id="formatOutput" readonly placeholder="Formatted JSON will appear here"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tree View Tab -->
+            <div id="tree" class="tab-pane">
+                <div class="split-pane">
+                    <div class="pane">
+                        <div class="pane-header">Input JSON</div>
+                        <div class="pane-content">
+                            <textarea id="treeInput" placeholder="Paste JSON here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pane">
+                        <div class="pane-header">Tree View</div>
+                        <div class="pane-content" id="treeOutput" style="overflow-y: auto;">
+                            Tree will appear here
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- JSONPath Tab -->
+            <div id="query" class="tab-pane">
+                <div class="pane" style="flex: 1;">
+                    <div class="pane-header">JSONPath Query</div>
+                    <div class="pane-content" style="flex-direction: column;">
+                        <textarea id="queryInput" style="height: 150px;" placeholder="Paste JSON here..."></textarea>
+                        <input id="queryPath" type="text" placeholder="Query: $.key, $[*], $.key[0].nested" style="margin-top: 1rem;">
+                        <div id="queryOutput" style="margin-top: 1rem; flex: 1; overflow: auto; background: #0a0e27; border: 1px solid #333; padding: 1rem; border-radius: 4px;">
+                            Results will appear here
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diff Tab -->
+            <div id="diff" class="tab-pane">
+                <div class="split-pane">
+                    <div class="pane">
+                        <div class="pane-header">JSON 1</div>
+                        <div class="pane-content">
+                            <textarea id="diffInput1" placeholder="Paste first JSON..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pane">
+                        <div class="pane-header">JSON 2</div>
+                        <div class="pane-content">
+                            <textarea id="diffInput2" placeholder="Paste second JSON..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pane">
+                        <div class="pane-header">Diff Result</div>
+                        <div class="pane-content">
+                            <button onclick="performDiff()" style="margin-bottom: 1rem;">Diff</button>
+                            <div id="diffOutput" style="overflow-y: auto;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transform Tab -->
+            <div id="transform" class="tab-pane">
+                <div class="split-pane">
+                    <div class="pane">
+                        <div class="pane-header">Input JSON</div>
+                        <div class="pane-content">
+                            <textarea id="transformInput" placeholder="Paste JSON here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="pane">
+                        <div class="pane-header">Output</div>
+                        <div class="pane-content" style="flex-direction: column;">
+                            <div class="button-group">
+                                <button onclick="transformFormat('minify')">Minify</button>
+                                <button onclick="transformFormat('pretty')">Pretty-Print</button>
+                                <button onclick="transformFormat('sort')">Sort Keys</button>
+                                <button onclick="transformFormat('csv')">To CSV</button>
+                                <button onclick="transformFormat('yaml')">To YAML</button>
+                            </div>
+                            <textarea id="transformOutput" readonly placeholder="Transformed output will appear here"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const formatInput = document.getElementById('formatInput');
+        const formatOutput = document.getElementById('formatOutput');
+        const formatError = document.getElementById('formatError');
+        const treeInput = document.getElementById('treeInput');
+        const treeOutput = document.getElementById('treeOutput');
+        const queryInput = document.getElementById('queryInput');
+        const queryPath = document.getElementById('queryPath');
+        const queryOutput = document.getElementById('queryOutput');
+        const transformInput = document.getElementById('transformInput');
+        const transformOutput = document.getElementById('transformOutput');
+
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+        }
+
+        function formatJSON(json) {
+            try {
+                const parsed = JSON.parse(json);
+                return JSON.stringify(parsed, null, 2);
+            } catch (e) {
+                throw new Error(`Line ${e.message.match(/\d+/) || 'unknown'}: ${e.message}`);
+            }
+        }
+
+        formatInput.addEventListener('input', () => {
+            formatError.innerHTML = '';
+            if (!formatInput.value.trim()) {
+                formatOutput.value = '';
+                return;
+            }
+            try {
+                formatOutput.value = formatJSON(formatInput.value);
+            } catch (e) {
+                formatError.innerHTML = `<div class="error">❌ ${e.message}</div>`;
+            }
+        });
+
+        // Handle paste event for auto-format
+        formatInput.addEventListener('paste', (e) => {
+            setTimeout(() => {
+                try {
+                    formatOutput.value = formatJSON(formatInput.value);
+                } catch (err) {
+                    formatError.innerHTML = `<div class="error">❌ ${err.message}</div>`;
+                }
+            }, 10);
+        });
+
+        treeInput.addEventListener('input', () => {
+            if (!treeInput.value.trim()) {
+                treeOutput.innerHTML = 'Tree will appear here';
+                return;
+            }
+            try {
+                const obj = JSON.parse(treeInput.value);
+                treeOutput.innerHTML = renderTree(obj);
+            } catch (e) {
+                treeOutput.innerHTML = `<div class="error">❌ Invalid JSON</div>`;
+            }
+        });
+
+        function renderTree(obj, depth = 0) {
+            let html = '';
+            if (typeof obj === 'object' && obj !== null) {
+                if (Array.isArray(obj)) {
+                    html += `<div class="tree-item">[ ${obj.length} items ]</div>`;
+                    obj.forEach((item, i) => {
+                        html += `<div class="tree-item" style="margin-left: ${(depth + 1) * 1.5}rem;">
+                            <span class="tree-key">[${i}]:</span> ${renderTreeValue(item, depth + 1)}
+                        </div>`;
+                    });
+                } else {
+                    html += `<div class="tree-item">{ ${Object.keys(obj).length} keys }</div>`;
+                    Object.entries(obj).forEach(([key, val]) => {
+                        html += `<div class="tree-item" style="margin-left: ${(depth + 1) * 1.5}rem;">
+                            <span class="tree-key">"${key}":</span> ${renderTreeValue(val, depth + 1)}
+                        </div>`;
+                    });
+                }
+            }
+            return html;
+        }
+
+        function renderTreeValue(val, depth) {
+            if (val === null) return '<span class="tree-value">null</span>';
+            if (typeof val === 'boolean') return `<span class="tree-value">${val}</span>`;
+            if (typeof val === 'number') return `<span class="tree-value">${val}</span>`;
+            if (typeof val === 'string') return `<span class="tree-value">"${val.substring(0, 50)}${val.length > 50 ? '...' : ''}"</span>`;
+            if (Array.isArray(val)) return `<span class="tree-value">[${val.length}]</span>`;
+            if (typeof val === 'object') return `<span class="tree-value">{...}</span>`;
+        }
+
+        queryInput.addEventListener('input', () => executeQuery());
+        queryPath.addEventListener('input', () => executeQuery());
+
+        function executeQuery() {
+            if (!queryInput.value.trim() || !queryPath.value.trim()) {
+                queryOutput.innerHTML = 'Ready for query';
+                return;
+            }
+            try {
+                const obj = JSON.parse(queryInput.value);
+                const results = queryJSONPath(obj, queryPath.value);
+                queryOutput.innerHTML = `<pre>${JSON.stringify(results, null, 2)}</pre>`;
+            } catch (e) {
+                queryOutput.innerHTML = `<div class="error">❌ ${e.message}</div>`;
+            }
+        }
+
+        function queryJSONPath(obj, path) {
+            if (path === '$') return obj;
+            if (path === '$[*]') return Array.isArray(obj) ? obj : Object.values(obj);
+            
+            const parts = path.replace('$', '').split(/[\.\[\]]/).filter(p => p);
+            let current = obj;
+            
+            for (let part of parts) {
+                if (current === null || current === undefined) return undefined;
+                if (part === '*') return Array.isArray(current) ? current : Object.values(current);
+                current = current[part];
+            }
+            return current;
+        }
+
+        function performDiff() {
+            const diff1 = document.getElementById('diffInput1').value;
+            const diff2 = document.getElementById('diffInput2').value;
+            const diffOutput = document.getElementById('diffOutput');
+            
+            if (!diff1.trim() || !diff2.trim()) {
+                diffOutput.innerHTML = '<div class="error">❌ Please provide both JSON inputs</div>';
+                return;
+            }
+            
+            try {
+                const obj1 = JSON.parse(diff1);
+                const obj2 = JSON.parse(diff2);
+                
+                const changes = diffObjects(obj1, obj2);
+                let html = '';
+                
+                if (changes.added.length === 0 && changes.removed.length === 0 && changes.changed.length === 0) {
+                    html = '<div class="success">✓ No differences</div>';
+                } else {
+                    if (changes.added.length > 0) {
+                        html += `<div class="success">+ Added: ${changes.added.join(', ')}</div>`;
+                    }
+                    if (changes.removed.length > 0) {
+                        html += `<div class="error">- Removed: ${changes.removed.join(', ')}</div>`;
+                    }
+                    if (changes.changed.length > 0) {
+                        html += `<div style="color: #ffaa00;">~ Changed: ${changes.changed.join(', ')}</div>`;
+                    }
+                }
+                
+                diffOutput.innerHTML = html;
+            } catch (e) {
+                diffOutput.innerHTML = `<div class="error">❌ ${e.message}</div>`;
+            }
+        }
+
+        function diffObjects(obj1, obj2) {
+            const changes = { added: [], removed: [], changed: [] };
+            const allKeys = new Set([...Object.keys(obj1 || {}), ...Object.keys(obj2 || {})]);
+            
+            for (let key of allKeys) {
+                if (!(key in obj1)) {
+                    changes.added.push(key);
+                } else if (!(key in obj2)) {
+                    changes.removed.push(key);
+                } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
+                    changes.changed.push(key);
+                }
+            }
+            
+            return changes;
+        }
+
+        function transformFormat(format) {
+            const input = transformInput.value;
+            if (!input.trim()) return;
+            
+            try {
+                const obj = JSON.parse(input);
+                let output = '';
+                
+                switch (format) {
+                    case 'minify':
+                        output = JSON.stringify(obj);
+                        break;
+                    case 'pretty':
+                        output = JSON.stringify(obj, null, 2);
+                        break;
+                    case 'sort':
+                        output = JSON.stringify(sortKeys(obj), null, 2);
+                        break;
+                    case 'csv':
+                        output = jsonToCSV(obj);
+                        break;
+                    case 'yaml':
+                        output = jsonToYAML(obj);
+                        break;
+                }
+                
+                transformOutput.value = output;
+            } catch (e) {
+                transformOutput.value = `Error: ${e.message}`;
+            }
+        }
+
+        function sortKeys(obj) {
+            if (Array.isArray(obj)) {
+                return obj.map(sortKeys);
+            } else if (obj !== null && typeof obj === 'object') {
+                return Object.keys(obj)
+                    .sort()
+                    .reduce((sorted, key) => {
+                        sorted[key] = sortKeys(obj[key]);
+                        return sorted;
+                    }, {});
+            }
+            return obj;
+        }
+
+        function jsonToCSV(obj) {
+            if (!Array.isArray(obj)) return 'Error: Input must be an array';
+            if (obj.length === 0) return '';
+            
+            const headers = Object.keys(obj[0]);
+            const csv = [headers.join(',')];
+            
+            for (let row of obj) {
+                csv.push(headers.map(h => {
+                    const val = row[h];
+                    const str = typeof val === 'string' ? val : JSON.stringify(val);
+                    return `"${str.replace(/"/g, '""')}"`;
+                }).join(','));
+            }
+            
+            return csv.join('\n');
+        }
+
+        function jsonToYAML(obj, indent = 0) {
+            let yaml = '';
+            const spaces = ' '.repeat(indent);
+            
+            if (Array.isArray(obj)) {
+                for (let item of obj) {
+                    if (typeof item === 'object' && item !== null) {
+                        yaml += spaces + '- ' + jsonToYAML(item, indent + 2).substring(indent + 2) + '\n';
+                    } else {
+                        yaml += spaces + `- ${item}\n`;
+                    }
+                }
+            } else if (obj !== null && typeof obj === 'object') {
+                for (let [key, val] of Object.entries(obj)) {
+                    if (typeof val === 'object' && val !== null) {
+                        yaml += spaces + `${key}:\n${jsonToYAML(val, indent + 2)}`;
+                    } else {
+                        yaml += spaces + `${key}: ${val}\n`;
+                    }
+                }
+            }
+            
+            return yaml;
+        }
+    </script>
+</body>
+</html>

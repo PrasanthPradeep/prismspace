@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Translator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #080b14;
+            color: #e2e8f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .inet-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .lang-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            flex-wrap: wrap
+        }
+
+        .lang-sel {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+            min-width: 130px
+        }
+
+        .lang-sel option {
+            background: #1a1f2e;
+            color: #e2e8f0
+        }
+
+        .swap-btn {
+            background: rgba(167, 139, 250, 0.12);
+            border: 1px solid rgba(167, 139, 250, 0.3);
+            color: #c4b5fd;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s
+        }
+
+        .swap-btn:hover {
+            background: rgba(167, 139, 250, 0.25);
+            transform: rotate(180deg)
+        }
+
+        .conv-btn {
+            background: linear-gradient(135deg, rgba(167, 139, 250, 0.25), rgba(236, 72, 153, 0.2));
+            border: 1px solid rgba(167, 139, 250, 0.4);
+            color: #ddd6fe;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-left: 4px
+        }
+
+        .conv-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px)
+        }
+
+        .conv-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .explain-toggle {
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            color: #93c5fd;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit
+        }
+
+        .explain-toggle.on {
+            background: rgba(96, 165, 250, 0.2);
+            border-color: rgba(96, 165, 250, 0.45)
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #f87171;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2)
+        }
+
+        .split-pane {
+            display: flex;
+            flex: 1;
+            overflow: hidden
+        }
+
+        .pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .pane-header {
+            padding: 10px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06)
+        }
+
+        .pane-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4)
+        }
+
+        .copy-btn {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.25);
+            color: #6ee7b7;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s
+        }
+
+        .copy-btn:hover {
+            background: rgba(52, 211, 153, 0.2)
+        }
+
+        .code-area {
+            flex: 1;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.25);
+            border: none;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 14px;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            line-height: 1.65;
+            resize: none;
+            outline: none;
+            tab-size: 4
+        }
+
+        .code-area::placeholder {
+            color: rgba(255, 255, 255, 0.2)
+        }
+
+        .output-area {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12.5px;
+            line-height: 1.65;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            color: #c8dffa
+        }
+
+        .output-placeholder {
+            color: rgba(255, 255, 255, 0.2);
+            text-align: center;
+            padding: 30px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 14px
+        }
+
+        .diff-section {
+            background: rgba(96, 165, 250, 0.05);
+            border-top: 1px solid rgba(96, 165, 250, 0.2);
+            padding: 14px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.75);
+            overflow-y: auto;
+            max-height: 200px
+        }
+
+        .diff-hdr {
+            font-size: 12px;
+            font-weight: 600;
+            color: #60a5fa;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px
+        }
+
+        .history-bar {
+            display: flex;
+            gap: 8px;
+            padding: 8px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            overflow-x: auto;
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.15)
+        }
+
+        .hist-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.55);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex-shrink: 0
+        }
+
+        .hist-chip:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85)
+        }
+
+        .hist-empty {
+            color: rgba(255, 255, 255, 0.25);
+            font-size: 11px;
+            padding: 4px 0;
+            align-self: center
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 14px;
+            background: #a78bfa;
+            animation: blink 0.7s infinite;
+            vertical-align: middle
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.13);
+            border-radius: 3px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="inet-banner">📡 Internet required — Groq API · System prompt: "Convert to idiomatic {to_lang}.
+        Preserve logic exactly."</div>
+    <div class="header">
+        <div class="header-left">
+            <div class="header-title">⇄ Code Translator</div>
+        </div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="lang-row">
+        <select class="lang-sel" id="fromLang">
+            <option value="Python">Python</option>
+            <option value="JavaScript" selected>JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Swift">Swift</option>
+            <option value="Kotlin">Kotlin</option>
+        </select>
+        <button class="swap-btn" title="Swap languages" onclick="swapLangs()">⇄</button>
+        <select class="lang-sel" id="toLang">
+            <option value="Python" selected>Python</option>
+            <option value="JavaScript">JavaScript</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Swift">Swift</option>
+            <option value="Kotlin">Kotlin</option>
+        </select>
+        <button class="conv-btn" id="convBtn" onclick="convertCode()">⚡ Convert</button>
+        <button class="explain-toggle" id="explainToggle" onclick="toggleExplain()">💡 Explain Differences: OFF</button>
+    </div>
+    <div class="split-pane">
+        <div class="pane">
+            <div class="pane-header">
+                <span class="pane-label">Source Code</span>
+            </div>
+            <textarea class="code-area" id="sourceCode"
+                placeholder="// Paste your source code here...&#10;// Select languages above, then click Convert ⚡"></textarea>
+        </div>
+        <div class="pane">
+            <div class="pane-header">
+                <span class="pane-label" id="outputLabel">Converted Code</span>
+                <button class="copy-btn" onclick="copyOutput()">📋 Copy</button>
+            </div>
+            <div class="output-area" id="outputArea">
+                <div class="output-placeholder">Converted code will appear here...</div>
+            </div>
+            <div class="diff-section" id="diffSection" style="display:none">
+                <div class="diff-hdr">💡 Idiom & Pattern Differences</div>
+                <div id="diffContent"></div>
+            </div>
+        </div>
+    </div>
+    <div class="history-bar" id="historyBar">
+        <span class="hist-empty">No recent conversions</span>
+    </div>
+    <script>
+        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
+        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        let busy = false;
+        let explainDiff = false;
+        let history = JSON.parse(localStorage.getItem('ct_history') || '[]');
+        renderHistory();
+
+        function swapLangs() {
+            const f = document.getElementById('fromLang');
+            const t = document.getElementById('toLang');
+            const tmp = f.value; f.value = t.value; t.value = tmp;
+        }
+
+        function toggleExplain() {
+            explainDiff = !explainDiff;
+            const btn = document.getElementById('explainToggle');
+            btn.textContent = `💡 Explain Differences: ${explainDiff ? 'ON' : 'OFF'}`;
+            btn.classList.toggle('on', explainDiff);
+            if (!explainDiff) document.getElementById('diffSection').style.display = 'none';
+        }
+
+
+
+        function getGroqError(xhr) {
+            try {
+                const payload = JSON.parse(xhr.responseText);
+                if (payload && payload.error) {
+                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
+                }
+            } catch (_) { }
+            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
+        }
+
+        function buildGroqPayload(messages, opts) {
+            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
+            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
+                payload.max_completion_tokens = payload.max_tokens;
+            }
+            delete payload.max_tokens;
+            if (payload.reasoning_effort == null) {
+                payload.reasoning_effort = 'medium';
+            }
+            return payload;
+        }
+
+        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        function xhrStream(messages, opts, onChunk, onDone, onErr) {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', GROQ_API_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                let pos = 0;
+                function parse() {
+                    const raw = xhr.responseText;
+                    if (raw.length <= pos) return;
+                    const nt = raw.slice(pos); pos = raw.length;
+                    nt.split('\n').forEach(line => {
+                        if (!line.startsWith('data: ')) return;
+                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
+                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
+                    });
+                }
+                xhr.onprogress = parse;
+                xhr.onload = () => {
+                    parse();
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        onDone && onDone();
+                        return;
+                    }
+                    onErr && onErr(getGroqError(xhr));
+                };
+                xhr.onerror = () => onErr && onErr('Network error');
+                xhr.ontimeout = () => onErr && onErr('Timeout');
+                xhr.timeout = 120000;
+                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
+            } catch (e) { onErr && onErr(e.message); }
+        }
+
+        function convertCode() {
+            if (busy) return;
+            const code = document.getElementById('sourceCode').value.trim();
+            if (!code) { alert('Please paste some code first!'); return; }
+            const from = document.getElementById('fromLang').value;
+            const to = document.getElementById('toLang').value;
+            const outArea = document.getElementById('outputArea');
+            busy = true; document.getElementById('convBtn').disabled = true;
+            outArea.innerHTML = '<span class="streaming-cursor"></span>';
+            document.getElementById('diffSection').style.display = 'none';
+            document.getElementById('outputLabel').textContent = to + ' Code';
+
+            const sysPrompt = `Convert the following ${from} code to idiomatic ${to}. Preserve logic exactly. Use ${to} conventions and idioms, not a literal translation. Return ONLY the converted code without explanation, no markdown code fences.`;
+            let full = '';
+            xhrStream(
+                [{ role: 'system', content: sysPrompt }, { role: 'user', content: code }],
+                { max_tokens: 3000, temperature: 0.3 },
+                (tok) => {
+                    full += tok;
+                    outArea.textContent = full;
+                    outArea.innerHTML += '<span class="streaming-cursor"></span>';
+                    outArea.scrollTop = outArea.scrollHeight;
+                },
+                () => {
+                    const cur = outArea.querySelector('.streaming-cursor'); if (cur) cur.remove();
+                    outArea.textContent = full;
+                    addHistory(from, to);
+                    if (explainDiff) runDiffExplain(from, to, code, full);
+                    else { busy = false; document.getElementById('convBtn').disabled = false; }
+                },
+                (e) => {
+                    outArea.innerHTML = `<span style="color:#f87171">⚠️ Error: ${e}</span>`;
+                    busy = false; document.getElementById('convBtn').disabled = false;
+                }
+            );
+        }
+
+        function runDiffExplain(from, to, src, dst) {
+            const diffSection = document.getElementById('diffSection');
+            const diffContent = document.getElementById('diffContent');
+            diffSection.style.display = 'block';
+            diffContent.innerHTML = '<span class="streaming-cursor"></span>';
+            let full = '';
+            xhrStream(
+                [{ role: 'system', content: `You are an expert in ${from} and ${to}. Explain the key idiom and pattern differences between the original ${from} code and the converted ${to} code. Keep it concise — 3-5 bullet points.` },
+                { role: 'user', content: `${from} source:\n${src}\n\n${to} translation:\n${dst}` }],
+                { max_tokens: 800, temperature: 0.5 },
+                (tok) => { full += tok; diffContent.innerHTML = full.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+                () => {
+                    const cur = diffContent.querySelector('.streaming-cursor'); if (cur) cur.remove();
+                    diffContent.innerHTML = full.replace(/\n/g, '<br>');
+                    busy = false; document.getElementById('convBtn').disabled = false;
+                },
+                (e) => {
+                    diffContent.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`;
+                    busy = false; document.getElementById('convBtn').disabled = false;
+                }
+            );
+        }
+
+        function addHistory(from, to) {
+            history.unshift({ from, to, date: new Date().toLocaleTimeString() });
+            if (history.length > 5) history.pop();
+            localStorage.setItem('ct_history', JSON.stringify(history));
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const bar = document.getElementById('historyBar');
+            if (!history.length) { bar.innerHTML = '<span class="hist-empty">No recent conversions</span>'; return; }
+            bar.innerHTML = history.map((h, i) => `<div class="hist-chip" title="${h.date}">${h.from} → ${h.to}</div>`).join('');
+        }
+
+        function copyOutput() {
+            const text = document.getElementById('outputArea').textContent;
+            if (!text || text.includes('Converted code will appear')) { showToast('Nothing to copy!', 'warn'); return; }
+            navigator.clipboard.writeText(text).then(() => showToast('✅ Copied!')).catch(() => showToast('❌ Failed', 'err'));
+        }
+
+        function showToast(msg, t = 'ok') { const el = document.createElement('div'); const bg = t === 'err' ? 'rgba(239,68,68,0.9)' : t === 'warn' ? 'rgba(245,158,11,0.9)' : 'rgba(16,185,129,0.9)'; el.style.cssText = `position:fixed;top:16px;right:16px;background:${bg};color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999`; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 2500); }
+
+        window.closePanel = function () {
+            if (window.parent && window.parent !== window) { try { window.parent.postMessage({ action: 'closeCodeTranslator' }, '*'); if (typeof window.parent.closeCodeTranslator === 'function') window.parent.closeCodeTranslator(); } catch (e) { window.close(); } } else { window.close(); }
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+    </script>
+</body>
+
+</html>

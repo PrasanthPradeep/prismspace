@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Synthesizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: rgba(255, 0, 0, 0.1);
+            border: 1px solid rgba(255, 0, 0, 0.3);
+            border-radius: 8px;
+            color: #ff6b6b;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 0, 0, 0.2);
+            border-color: rgba(255, 0, 0, 0.5);
+            transform: scale(1.1);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+        }
+
+        .format-select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .format-select:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .format-select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 1px solid rgba(16, 185, 129, 0.5);
+            border-radius: 8px;
+            color: white;
+            padding: 10px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+        }
+
+        .content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            overflow: hidden;
+        }
+
+        .panel-left {
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .panel-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .textarea {
+            flex: 1;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .textarea:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(16, 185, 129, 0.5);
+        }
+
+        .textarea::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .output-area {
+            flex: 1;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #10b981;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            border-radius: 8px;
+            padding: 16px;
+            color: #ff6b6b;
+            margin-top: 12px;
+        }
+
+        .char-count {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 8px;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+
+            .panel-left {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">
+                <span>🤖 Prompt Synthesizer</span>
+            </div>
+            <button class="close-btn" onclick="closePanel()" title="Close (ESC)">✕</button>
+        </div>
+
+        <div class="toolbar">
+            <select class="format-select" id="formatSelect">
+                <option value="improved">Improved Prompt</option>
+                <option value="xml">XML Format</option>
+                <option value="json">JSON Format</option>
+                <option value="markdown">Markdown Format</option>
+            </select>
+
+            <button class="btn" id="synthesizeBtn" onclick="synthesizePrompt()">
+                <span>✨</span>
+                Synthesize
+            </button>
+
+            <button class="btn btn-secondary" onclick="copyOutput()" id="copyBtn">
+                <span>📋</span>
+                Copy Output
+            </button>
+
+            <button class="btn btn-secondary" onclick="clearAll()">
+                <span>🗑️</span>
+                Clear
+            </button>
+        </div>
+
+        <div class="content">
+            <div class="panel panel-left">
+                <div class="panel-title">Input Prompt</div>
+                <textarea 
+                    class="textarea" 
+                    id="inputPrompt" 
+                    placeholder="Enter your prompt here...&#10;&#10;Example: Write a function to reverse a string"
+                    oninput="updateCharCount()"
+                ></textarea>
+                <div class="char-count" id="charCount">0 characters</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-title">Synthesized Output</div>
+                <div class="output-area" id="outputArea">
+                    <div style="color: rgba(255, 255, 255, 0.4); text-align: center; padding: 40px;">
+                        Enter a prompt and click "Synthesize" to get started
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Local prompt synthesis - no external API needed
+        window.synthesizePrompt = async function() {
+            const inputPrompt = document.getElementById('inputPrompt').value.trim();
+            const formatSelect = document.getElementById('formatSelect').value;
+            const outputArea = document.getElementById('outputArea');
+            const synthesizeBtn = document.getElementById('synthesizeBtn');
+
+            if (!inputPrompt) {
+                showError("Please enter a prompt first!");
+                return;
+            }
+
+            // Show loading state
+            synthesizeBtn.disabled = true;
+            outputArea.innerHTML = '<div class="loading"><div class="spinner"></div><span>Synthesizing prompt...</span></div>';
+
+            try {
+                // Simulate async processing
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                let output = "";
+                
+                switch(formatSelect) {
+                    case 'improved':
+                        output = improvePrompt(inputPrompt);
+                        break;
+                    case 'xml':
+                        output = convertToXML(inputPrompt);
+                        break;
+                    case 'json':
+                        output = convertToJSON(inputPrompt);
+                        break;
+                    case 'markdown':
+                        output = convertToMarkdown(inputPrompt);
+                        break;
+                }
+
+                // Display output
+                outputArea.textContent = output || "No output generated";
+
+            } catch (error) {
+                console.error("Error:", error);
+                showError("Failed to synthesize prompt: " + error.message);
+            } finally {
+                synthesizeBtn.disabled = false;
+            }
+        };
+
+        // Local prompt improvement function
+        function improvePrompt(prompt) {
+            const lines = prompt.split('\n').map(l => l.trim()).filter(l => l);
+            
+            let improved = "# Enhanced Prompt\n\n";
+            improved += "## Context\n";
+            improved += "You are working on the following task:\n\n";
+            
+            // Add the original prompt with improvements
+            improved += lines.map(line => {
+                // Add specificity
+                if (!line.endsWith('.') && !line.endsWith('?') && !line.endsWith(':')) {
+                    line += '.';
+                }
+                return line;
+            }).join('\n');
+            
+            improved += "\n\n## Requirements\n";
+            improved += "- Provide a detailed and comprehensive response\n";
+            improved += "- Use clear, concise language\n";
+            improved += "- Include examples where relevant\n";
+            improved += "- Structure your response logically\n";
+            
+            improved += "\n\n## Output Format\n";
+            improved += "Please organize your response with:\n";
+            improved += "1. A brief summary\n";
+            improved += "2. Detailed explanation\n";
+            improved += "3. Practical examples\n";
+            improved += "4. Next steps or recommendations\n";
+            
+            return improved;
+        }
+
+        // Convert prompt to XML format
+        function convertToXML(prompt) {
+            const lines = prompt.split('\n').map(l => l.trim()).filter(l => l);
+            
+            let xml = '<?xml version="1.0" encoding="UTF-8"?>\n';
+            xml += '<prompt>\n';
+            xml += '  <metadata>\n';
+            xml += `    <timestamp>${new Date().toISOString()}</timestamp>\n`;
+            xml += '    <version>1.0</version>\n';
+            xml += '  </metadata>\n';
+            xml += '  <content>\n';
+            
+            lines.forEach((line, idx) => {
+                xml += `    <instruction id="${idx + 1}">${escapeXml(line)}</instruction>\n`;
+            });
+            
+            xml += '  </content>\n';
+            xml += '  <requirements>\n';
+            xml += '    <requirement>Provide detailed response</requirement>\n';
+            xml += '    <requirement>Include relevant examples</requirement>\n';
+            xml += '    <requirement>Maintain logical structure</requirement>\n';
+            xml += '  </requirements>\n';
+            xml += '</prompt>';
+            
+            return xml;
+        }
+
+        // Convert prompt to JSON format
+        function convertToJSON(prompt) {
+            const lines = prompt.split('\n').map(l => l.trim()).filter(l => l);
+            
+            const json = {
+                prompt: {
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        version: "1.0",
+                        type: "instruction"
+                    },
+                    content: {
+                        instructions: lines,
+                        mainTask: lines[0] || prompt
+                    },
+                    requirements: [
+                        "Provide detailed and comprehensive response",
+                        "Use clear and concise language",
+                        "Include practical examples",
+                        "Maintain logical structure"
+                    ],
+                    outputFormat: {
+                        structure: [
+                            "Summary",
+                            "Detailed explanation",
+                            "Examples",
+                            "Recommendations"
+                        ]
+                    }
+                }
+            };
+            
+            return JSON.stringify(json, null, 2);
+        }
+
+        // Convert prompt to Markdown format
+        function convertToMarkdown(prompt) {
+            const lines = prompt.split('\n').map(l => l.trim()).filter(l => l);
+            
+            let md = '# Prompt\n\n';
+            md += '## Task Description\n\n';
+            
+            lines.forEach((line, idx) => {
+                md += `${idx + 1}. ${line}\n`;
+            });
+            
+            md += '\n## Guidelines\n\n';
+            md += '- **Clarity**: Use clear and unambiguous language\n';
+            md += '- **Detail**: Provide comprehensive information\n';
+            md += '- **Examples**: Include relevant examples where applicable\n';
+            md += '- **Structure**: Organize content logically\n\n';
+            
+            md += '## Expected Output\n\n';
+            md += '```\n';
+            md += '1. Executive Summary\n';
+            md += '2. Detailed Analysis\n';
+            md += '3. Practical Examples\n';
+            md += '4. Recommendations\n';
+            md += '```\n\n';
+            
+            md += '## Notes\n\n';
+            md += `> Generated on ${new Date().toLocaleString()}\n`;
+            
+            return md;
+        }
+
+        // Helper function to escape XML special characters
+        function escapeXml(str) {
+            return str
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&apos;');
+        }
+
+        window.copyOutput = function() {
+            const outputArea = document.getElementById('outputArea');
+            const text = outputArea.textContent;
+
+            if (!text || text.includes('Enter a prompt')) {
+                showToast('No output to copy!', 'error');
+                return;
+            }
+
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Output copied to clipboard!');
+            }).catch(err => {
+                showToast('❌ Failed to copy', 'error');
+            });
+        };
+
+        window.clearAll = function() {
+            document.getElementById('inputPrompt').value = '';
+            document.getElementById('outputArea').innerHTML = '<div style="color: rgba(255, 255, 255, 0.4); text-align: center; padding: 40px;">Enter a prompt and click "Synthesize" to get started</div>';
+            updateCharCount();
+        };
+
+        window.updateCharCount = function() {
+            const input = document.getElementById('inputPrompt').value;
+            document.getElementById('charCount').textContent = `${input.length} characters`;
+        };
+
+        function showError(message) {
+            const outputArea = document.getElementById('outputArea');
+            outputArea.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? 'rgba(255, 77, 77, 0.9)' : 'rgba(16, 185, 129, 0.9)'};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-in';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        window.closePanel = function() {
+            if (window.parent && window.parent !== window) {
+                try {
+                    try { window.parent.postMessage({ action: 'closePromptSynthesizer' }, '*'); } catch(e) { window.close(); }
+                    if (typeof window.parent.closePromptSynthesizer === 'function') {
+                        window.parent.closePromptSynthesizer();
+                    }
+                } catch (e) {
+                    window.close();
+                }
+            } else {
+                window.close();
+            }
+        };
+
+        // Handle Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePanel();
+            }
+        });
+
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(400px);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

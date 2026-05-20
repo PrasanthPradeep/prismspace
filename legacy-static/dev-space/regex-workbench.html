@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regex Workbench</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        .header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tabs {
+            display: flex;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0 1rem;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+        .tab-btn:hover {
+            color: #00ff88;
+        }
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+        textarea, input {
+            width: 100%;
+            background: #1a1f3a;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        label {
+            display: block;
+            margin: 1rem 0 0.5rem 0;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .flags {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .flag-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flag-item input {
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
+        }
+        .flag-item label {
+            margin: 0;
+            cursor: pointer;
+            color: #888;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 0.4rem 0.75rem;
+            font-size: 0.85rem;
+        }
+        .output-box {
+            background: #0a0e27;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-size: 0.85rem;
+        }
+        .match-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            margin: 1rem 0;
+        }
+        .match-table th,
+        .match-table td {
+            border: 1px solid #333;
+            padding: 0.5rem;
+            text-align: left;
+        }
+        .match-table th {
+            background: #1a1f3a;
+            color: #00ff88;
+        }
+        .match-table tr:nth-child(even) {
+            background: rgba(0, 0, 0, 0.3);
+        }
+        .match-highlight {
+            display: inline-block;
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            padding: 2px 4px;
+            border-radius: 2px;
+            margin: 2px;
+        }
+        .success {
+            color: #00ff88;
+        }
+        .error {
+            color: #ff4444;
+        }
+        .library {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        .lib-item {
+            background: #1a1f3a;
+            padding: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #333;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+        }
+        .lib-item:hover {
+            border-color: #00ff88;
+            background: #25293f;
+        }
+        .lib-item strong {
+            color: #00ff88;
+        }
+        .explanation {
+            background: #1a1f3a;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Regex Workbench</h1>
+            <button onclick="try { parent.postMessage({action: 'closeRegexWorkbench'}, '*'); } catch(e) { window.close(); }">Close</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'test')">Tester</button>
+            <button class="tab-btn" onclick="switchTab(event, 'replace')">Replace</button>
+            <button class="tab-btn" onclick="switchTab(event, 'library')">Library</button>
+            <button class="tab-btn" onclick="switchTab(event, 'explain')">Explain</button>
+        </div>
+
+        <div class="content">
+            <!-- Tester Tab -->
+            <div id="test" class="tab-pane active">
+                <label>Pattern</label>
+                <input id="pattern" type="text" placeholder="Enter regex pattern...">
+
+                <label>Flags</label>
+                <div class="flags">
+                    <div class="flag-item">
+                        <input type="checkbox" id="flagG" onchange="updateMatches()">
+                        <label for="flagG">Global (g)</label>
+                    </div>
+                    <div class="flag-item">
+                        <input type="checkbox" id="flagI" onchange="updateMatches()">
+                        <label for="flagI">Ignore Case (i)</label>
+                    </div>
+                    <div class="flag-item">
+                        <input type="checkbox" id="flagM" onchange="updateMatches()">
+                        <label for="flagM">Multiline (m)</label>
+                    </div>
+                    <div class="flag-item">
+                        <input type="checkbox" id="flagS" onchange="updateMatches()">
+                        <label for="flagS">Dot All (s)</label>
+                    </div>
+                    <div class="flag-item">
+                        <input type="checkbox" id="flagU" onchange="updateMatches()">
+                        <label for="flagU">Unicode (u)</label>
+                    </div>
+                </div>
+
+                <label>Test String</label>
+                <textarea id="testString" rows="6" placeholder="Enter text to test..." onkeyup="updateMatches()"></textarea>
+
+                <div id="status"></div>
+
+                <label>Highlighted Result</label>
+                <div class="output-box" id="highlighted" style="white-space: pre-wrap; word-break: break-word;"></div>
+
+                <label>Matches Table</label>
+                <div id="matchesTable"></div>
+            </div>
+
+            <!-- Replace Tab -->
+            <div id="replace" class="tab-pane">
+                <label>Pattern</label>
+                <input id="replacePattern" type="text" placeholder="Enter regex pattern..." onkeyup="updateReplace()">
+
+                <label>Replacement String</label>
+                <input id="replacement" type="text" placeholder="Replacement (use $1, $2 for groups)..." onkeyup="updateReplace()">
+
+                <label>Text</label>
+                <textarea id="replaceText" rows="6" placeholder="Enter text..." onkeyup="updateReplace()"></textarea>
+
+                <label>Preview</label>
+                <div class="output-box" id="replaceOutput" style="white-space: pre-wrap; word-break: break-word;"></div>
+
+                <button onclick="copyReplace()" style="margin-top: 1rem;">Copy Result</button>
+            </div>
+
+            <!-- Library Tab -->
+            <div id="library" class="tab-pane">
+                <label>Pre-built Patterns</label>
+                <div class="library" id="libraryGrid"></div>
+            </div>
+
+            <!-- Explain Tab -->
+            <div id="explain" class="tab-pane">
+                <label>Regex Pattern</label>
+                <input id="explainPattern" type="text" placeholder="Enter regex to explain..." onkeyup="explainRegex()">
+                <div id="explanation"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const patterns = {
+            'Email': '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}',
+            'URL': 'https?://[^\\s]+',
+            'IPv4': '\\b(\\d{1,3}\\.){3}\\d{1,3}\\b',
+            'Phone US': '\\(?\\d{3}\\)?[-.\\s]?\\d{3}[-.\\s]?\\d{4}',
+            'Date (MM/DD/YYYY)': '\\d{2}/\\d{2}/\\d{4}',
+            'Date (YYYY-MM-DD)': '\\d{4}-\\d{2}-\\d{2}',
+            'Time (HH:MM)': '\\d{2}:\\d{2}',
+            'Hex Color': '#[0-9a-fA-F]{6}',
+            'Hex Color Short': '#[0-9a-fA-F]{3}',
+            'Credit Card': '\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}',
+            'Username': '^[a-zA-Z0-9_]{3,16}$',
+            'ISBN': '(?:ISBN(?:-1[03])?:?\\s?)?(?=[0-9X]{10}$|(?=(?:[0-9]+[^0-9]){3})[0-9X]{13}$)',
+            'Slug': '^[a-z0-9]+(?:-[a-z0-9]+)*$',
+            'UUID': '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
+            'HTML Tag': '<[^>]+>',
+            'HTML Entity': '&[a-zA-Z0-9]+;',
+            'Markdown Bold': '\\*\\*.*?\\*\\*',
+            'Markdown Italic': '\\*.*?\\*',
+            'Markdown Link': '\\[[^\\]]+\\]\\([^\\)]+\\)',
+            'Word Boundary': '\\b\\w+\\b'
+        };
+
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+            if (tabName === 'library') populateLibrary();
+        }
+
+        document.getElementById('pattern').addEventListener('input', updateMatches);
+
+        function updateMatches() {
+            const pattern = document.getElementById('pattern').value;
+            const text = document.getElementById('testString').value;
+            const flags = getFlags();
+
+            if (!pattern) {
+                document.getElementById('status').innerHTML = '';
+                document.getElementById('highlighted').innerHTML = text;
+                document.getElementById('matchesTable').innerHTML = '';
+                return;
+            }
+
+            try {
+                const regex = new RegExp(pattern, flags);
+                const matches = [...text.matchAll(regex)];
+                const colors = ['#ff4444', '#44ff44', '#4444ff', '#ffff44', '#44ffff', '#ff44ff'];
+
+                let highlighted = text;
+                let offset = 0;
+
+                matches.forEach((match, idx) => {
+                    const start = match.index + offset;
+                    const end = start + match[0].length;
+                    const color = colors[idx % colors.length];
+                    highlighted = highlighted.substring(0, start) + 
+                        `<span style="background: ${color}; color: #000; padding: 2px; border-radius: 2px;">${highlighted.substring(start, end)}</span>` + 
+                        highlighted.substring(end);
+                    offset += `<span style="background: ${color}; color: #000; padding: 2px; border-radius: 2px;">`.length;
+                });
+
+                document.getElementById('highlighted').innerHTML = highlighted;
+                document.getElementById('status').innerHTML = `<span class="success">✓ ${matches.length} match${matches.length !== 1 ? 'es' : ''} found</span>`;
+
+                // Build table
+                let tableHTML = '';
+                if (matches.length > 0) {
+                    const headers = ['Index', 'Match', 'Length'];
+                    for (let i = 1; i < matches[0].length; i++) {
+                        headers.push(`Group ${i}`);
+                    }
+                    tableHTML = '<table class="match-table"><tr><th>' + headers.join('</th><th>') + '</th></tr>';
+                    matches.forEach((match, idx) => {
+                        const cells = [idx, match[0], match[0].length];
+                        for (let i = 1; i < match.length; i++) {
+                            cells.push(match[i] || '-');
+                        }
+                        tableHTML += '<tr><td>' + cells.join('</td><td>') + '</td></tr>';
+                    });
+                    tableHTML += '</table>';
+                }
+                document.getElementById('matchesTable').innerHTML = tableHTML;
+            } catch (e) {
+                document.getElementById('status').innerHTML = `<span class="error">❌ ${e.message}</span>`;
+                document.getElementById('matchesTable').innerHTML = '';
+            }
+        }
+
+        function getFlags() {
+            let flags = '';
+            if (document.getElementById('flagG').checked) flags += 'g';
+            if (document.getElementById('flagI').checked) flags += 'i';
+            if (document.getElementById('flagM').checked) flags += 'm';
+            if (document.getElementById('flagS').checked) flags += 's';
+            if (document.getElementById('flagU').checked) flags += 'u';
+            return flags;
+        }
+
+        function updateReplace() {
+            const pattern = document.getElementById('replacePattern').value;
+            const replacement = document.getElementById('replacement').value;
+            const text = document.getElementById('replaceText').value;
+
+            if (!pattern || !text) {
+                document.getElementById('replaceOutput').innerHTML = 'Ready for replacement';
+                return;
+            }
+
+            try {
+                const regex = new RegExp(pattern, 'g');
+                const result = text.replace(regex, replacement);
+                document.getElementById('replaceOutput').innerHTML = result;
+            } catch (e) {
+                document.getElementById('replaceOutput').innerHTML = `<span class="error">❌ ${e.message}</span>`;
+            }
+        }
+
+        function copyReplace() {
+            const text = document.getElementById('replaceOutput').innerText;
+            navigator.clipboard.writeText(text);
+            alert('Copied!');
+        }
+
+        function populateLibrary() {
+            const grid = document.getElementById('libraryGrid');
+            grid.innerHTML = '';
+            for (const [name, pattern] of Object.entries(patterns)) {
+                const item = document.createElement('div');
+                item.className = 'lib-item';
+                item.innerHTML = `<strong>${name}</strong><br><code style="font-size: 0.75rem; color: #888;">${pattern}</code>`;
+                item.onclick = () => {
+                    document.getElementById('pattern').value = pattern;
+                    switchTab({ target: document.querySelector('[onclick*="test"]') }, 'test');
+                    updateMatches();
+                };
+                grid.appendChild(item);
+            }
+        }
+
+        function explainRegex() {
+            const pattern = document.getElementById('explainPattern').value;
+            if (!pattern) {
+                document.getElementById('explanation').innerHTML = '';
+                return;
+            }
+
+            const explanation = parseRegex(pattern);
+            document.getElementById('explanation').innerHTML = `<div class="explanation">${explanation}</div>`;
+        }
+
+        function parseRegex(pattern) {
+            let explanation = '<strong>Pattern breakdown:</strong><br><br>';
+            let i = 0;
+            let depth = 0;
+
+            for (; i < pattern.length; i++) {
+                const char = pattern[i];
+                const next = pattern[i + 1];
+
+                if (char === '[') {
+                    let closing = pattern.indexOf(']', i);
+                    const charClass = pattern.substring(i, closing + 1);
+                    explanation += `<strong>${charClass}:</strong> Character class<br>`;
+                    i = closing;
+                } else if (char === '(') {
+                    explanation += `<strong>(...):</strong> Capturing group<br>`;
+                    depth++;
+                } else if (char === ')') {
+                    depth--;
+                } else if (char === '\\') {
+                    const escape = pattern.substring(i, i + 2);
+                    const escapeMap = {
+                        '\\d': 'Any digit',
+                        '\\D': 'Any non-digit',
+                        '\\w': 'Any word character',
+                        '\\W': 'Any non-word character',
+                        '\\s': 'Any whitespace',
+                        '\\S': 'Any non-whitespace',
+                        '\\b': 'Word boundary'
+                    };
+                    explanation += `<strong>${escape}:</strong> ${escapeMap[escape] || 'Escaped character'}<br>`;
+                    i++;
+                } else if (char === '*') {
+                    explanation += `<strong>*:</strong> 0 or more occurrences<br>`;
+                } else if (char === '+') {
+                    explanation += `<strong>+:</strong> 1 or more occurrences<br>`;
+                } else if (char === '?') {
+                    explanation += `<strong>?:</strong> 0 or 1 occurrence<br>`;
+                } else if (char === '^') {
+                    explanation += `<strong>^:</strong> Start of string/line<br>`;
+                } else if (char === '$') {
+                    explanation += `<strong>$:</strong> End of string/line<br>`;
+                } else if (char === '.') {
+                    explanation += `<strong>.:</strong> Any character except newline<br>`;
+                } else if (char === '|') {
+                    explanation += `<strong>|:</strong> Alternation (OR)<br>`;
+                }
+            }
+
+            return explanation || 'No breakdown available';
+        }
+    </script>
+</body>
+</html>

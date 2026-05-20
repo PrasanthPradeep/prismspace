@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prism Dev Browser</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href='https://fonts.googleapis.com/css?family=JetBrains Mono' rel='stylesheet'>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Quantico:wght@700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quantico:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Single:wght@100..900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+    <script src="matrix.js" defer></script>
+</head>
+
+<body>
+    <!-- Top Logo Section -->
+    <div class="top-logo">
+        <img src="./images/prism-logo.svg" class="browser-logo">
+        <div class="logo-text">
+            <span class="logo-main">PRISM</span>
+            <span class="logo-sub">AI BROWSER</span>
+        </div>
+    </div>
+
+    <!-- Top Right Quote -->
+    <div class="top-quote">Loading quote...</div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Success Message -->
+            <div class="success-message">
+                <h1 id="primary-quote">Celebrate your success, PRISM</h1>
+                <h2 id="secondary-quote">User, Happy Friday!</h2>
+            </div>
+
+            <!-- Large Time Display -->
+            <div class="large-time" id="zen-time">7:42</div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="scroll-text">Scroll for Dev Space</div>
+            <div class="scroll-arrow">↓</div>
+        </div>
+    </div>
+
+    <!-- Developer Tools Section -->
+    <div class="dev-space" id="dev-space">
+        <div class="dev-space-header">
+            <h2 class="dev-space-title">Dev Space</h2>
+        </div>
+
+        <div class="dev-tools">
+            <a href="https://localhost:3000" class="tool-card" id="localhost">
+                <div class="tool-icon">🖥️</div>
+                <div class="tool-title">Localhost</div>
+                <div class="tool-desc">Quick access to local development server</div>
+            </a>
+
+            <a href="https://github.com" class="tool-card">
+                <div class="tool-icon">
+                    <svg width="32" height="32" viewBox="0 0 16 16" fill="currentColor">
+                        <path
+                            d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" />
+                    </svg>
+                </div>
+                <div class="tool-title">GitHub</div>
+                <div class="tool-desc">Version control and collaboration</div>
+            </a>
+
+
+
+            <div class="tool-card" onclick="openJsonToolkit()">
+                <div class="tool-icon">📋</div>
+                <div class="tool-title">JSON Toolkit</div>
+                <div class="tool-desc">Format, validate, diff, & transform JSON</div>
+            </div>
+
+            <div class="tool-card" onclick="openCryptoUtils()">
+                <div class="tool-icon">🔐</div>
+                <div class="tool-title">Crypto Utils</div>
+                <div class="tool-desc">Hash, encode/decode, JWT, UUID, passwords</div>
+            </div>
+
+            <div class="tool-card" onclick="openRegexWorkbench()">
+                <div class="tool-icon">⚙️</div>
+                <div class="tool-title">Regex Workbench</div>
+                <div class="tool-desc">Test patterns, match highlighting, library</div>
+            </div>
+
+            <div class="tool-card" onclick="openMarkdownEditor()">
+                <div class="tool-icon">📝</div>
+                <div class="tool-title">Markdown Editor</div>
+                <div class="tool-desc">Live preview, toolbar, auto-save</div>
+            </div>
+
+            <div class="tool-card" onclick="openGitReference()">
+                <div class="tool-icon">🐙</div>
+                <div class="tool-title">Git Reference</div>
+                <div class="tool-desc">Cheat sheet, builder, scenarios</div>
+            </div>
+
+            <div class="tool-card" onclick="openTimeDate()">
+                <div class="tool-icon">🕐</div>
+                <div class="tool-title">Time & Date</div>
+                <div class="tool-desc">Timestamp converter, world clock, cron</div>
+            </div>
+
+            <div class="tool-card" onclick="openColorGen()">
+                <div class="tool-icon">🎨</div>
+                <div class="tool-title">Color Gen</div>
+                <div class="tool-desc">Interactive color palette generator</div>
+            </div>
+
+            <div class="tool-card" onclick="openPromptSynthesizer()">
+                <div class="tool-icon">🤖</div>
+                <div class="tool-title">Prompt Synthesizer</div>
+                <div class="tool-desc">AI-powered prompt enhancement tool</div>
+            </div>
+
+            <a href="./dev-space/checklist-manager.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">✅</div>
+                <div class="tool-title">Checklist Manager</div>
+                <div class="tool-desc">Named lists, templates, drag-and-drop, print mode</div>
+            </a>
+
+            <a href="./dev-space/focus-settings.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">⏱️</div>
+                <div class="tool-title">Focus Timer</div>
+                <div class="tool-desc">Pomodoro timer, stats, task label, minimal mode</div>
+            </a>
+
+            <a href="./dev-space/bookmark-manager.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">🔖</div>
+                <div class="tool-title">Bookmark Manager</div>
+                <div class="tool-desc">Save, tag, search, import, export, and track visits</div>
+            </a>
+
+            <a href="./dev-space/habit-tracker.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">📈</div>
+                <div class="tool-title">Habit Tracker</div>
+                <div class="tool-desc">Streaks, heatmaps, weekly charts, and habit history</div>
+            </a>
+
+            <a href="./dev-space/random-picker.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">🎲</div>
+                <div class="tool-title">Random Picker</div>
+                <div class="tool-desc">Names, numbers, dice, coin flips, yes/no, history</div>
+            </a>
+
+            <a href="./dev-space/shortcut-reference.html" class="tool-card" target="_blank" rel="noopener">
+                <div class="tool-icon">⌨️</div>
+                <div class="tool-title">Shortcut Reference</div>
+                <div class="tool-desc">Searchable cheat sheets with pinned shortcuts</div>
+            </a>
+
+            <div class="tool-card" onclick="showSystemStats()">
+                <div class="tool-icon">📊</div>
+                <div class="tool-title">System Info</div>
+                <div class="tool-desc">Browser & system information</div>
+            </div>
+
+            <a href="https://github.com/Prismaibrowser/prism/blob/main/README.md" class="tool-card">
+                <div class="tool-icon">⟁</div>
+                <div class="tool-title">PrismBrowser Web</div>
+                <div class="tool-desc">Quick access to Prism website</div>
+            </a>
+
+            <div class="tool-card" onclick="openWritingAssistant()">
+                <div class="tool-icon">✍️</div>
+                <div class="tool-title">Writing Assistant</div>
+                <div class="tool-desc">AI writing improvement, translate, summarize &amp; more</div>
+            </div>
+
+            <div class="tool-card" onclick="openLanguageLearning()">
+                <div class="tool-icon">🌍</div>
+                <div class="tool-title">Language Learning</div>
+                <div class="tool-desc">AI tutor for 8+ languages with progress tracker</div>
+            </div>
+
+            <div class="tool-card" onclick="openCodeExplainer()">
+                <div class="tool-icon">🔍</div>
+                <div class="tool-title">Code Explainer</div>
+                <div class="tool-desc">Explain code for learners &amp; junior devs</div>
+            </div>
+
+            <div class="tool-card" onclick="openCodeTranslator()">
+                <div class="tool-icon">⇄</div>
+                <div class="tool-title">Code Translator</div>
+                <div class="tool-desc">Convert code between 12+ programming languages</div>
+            </div>
+
+            <div class="tool-card" onclick="openDecisionAnalyzer()">
+                <div class="tool-icon">🧠</div>
+                <div class="tool-title">Decision Analyzer</div>
+                <div class="tool-desc">AI deep analysis with thinking mode for decisions</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Info Widget -->
+    <div class="system-info" id="system-info">
+        <h3>💻 System Status</h3>
+        <div class="info-item">
+            <span>Browser:</span>
+            <span id="browser-info">PRISM AI Browser</span>
+        </div>
+        <div class="info-item">
+            <span>Screen:</span>
+            <span id="screen-info">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span>RAM Usage:</span>
+            <span id="ram-usage">Loading...</span>
+        </div>
+        <div class="info-item">
+            <span>Connection:</span>
+            <span id="connection-info">Loading...</span>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <div class="quick-btn" onclick="openSettingsModal()" title="Settings">⚙️</div>
+        <div class="quick-btn" onclick="toggleFullscreen()" title="Toggle Fullscreen">⛶</div>
+    </div>
+
+    <!-- Notepad Button -->
+    <div class="notepad-action">
+        <div class="quick-btn" onclick="openNotepad()" title="Notepad">📝</div>
+    </div>
+
+    <!-- Matrix Display -->
+    <div class="matrix-action">
+        <div class="matrix-container" title="Matrix Display - Click to change animation">
+            <div id="matrix-display" class="matrix-display"></div>
+        </div>
+    </div>
+
+    <!-- Notepad Side Panel -->
+    <div class="notepad-overlay" id="notepadOverlay" onclick="closeNotepad()"></div>
+    <div id="notepadPanel" class="notepad-panel">
+        <iframe data-src="./dev-space/notepad-panel.html" class="notepad-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Color Gen Side Panel -->
+    <div class="color-gen-overlay" id="colorGenOverlay" onclick="closeColorGen()"></div>
+    <div id="colorGenPanel" class="color-gen-panel">
+        <iframe data-src="./dev-space/color-gen.html" class="color-gen-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Prompt Synthesizer Side Panel -->
+    <div class="prompt-synthesizer-overlay" id="promptSynthesizerOverlay" onclick="closePromptSynthesizer()"></div>
+    <div id="promptSynthesizerPanel" class="prompt-synthesizer-panel">
+        <iframe data-src="./dev-space/prompt-synthesizer.html" class="prompt-synthesizer-iframe"
+            loading="lazy"></iframe>
+    </div>
+
+    <!-- Writing Assistant Side Panel -->
+    <div class="ai-tool-overlay" id="writingAssistantOverlay" onclick="closeWritingAssistant()"></div>
+    <div id="writingAssistantPanel" class="ai-tool-panel">
+        <iframe data-src="./dev-space/writing-assistant.html" class="ai-tool-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Language Learning Side Panel -->
+    <div class="ai-tool-overlay" id="languageLearningOverlay" onclick="closeLanguageLearning()"></div>
+    <div id="languageLearningPanel" class="ai-tool-panel">
+        <iframe data-src="./dev-space/language-learning.html" class="ai-tool-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Code Explainer Side Panel -->
+    <div class="ai-tool-overlay" id="codeExplainerOverlay" onclick="closeCodeExplainer()"></div>
+    <div id="codeExplainerPanel" class="ai-tool-panel">
+        <iframe data-src="./dev-space/code-explainer.html" class="ai-tool-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Code Translator Side Panel -->
+    <div class="ai-tool-overlay" id="codeTranslatorOverlay" onclick="closeCodeTranslator()"></div>
+    <div id="codeTranslatorPanel" class="ai-tool-panel">
+        <iframe data-src="./dev-space/code-translator.html" class="ai-tool-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Decision Analyzer Side Panel -->
+    <div class="ai-tool-overlay" id="decisionAnalyzerOverlay" onclick="closeDecisionAnalyzer()"></div>
+    <div id="decisionAnalyzerPanel" class="ai-tool-panel">
+        <iframe data-src="./dev-space/decision-analyzer.html" class="ai-tool-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- JSON Toolkit Side Panel -->
+    <div class="json-toolkit-overlay" id="jsonToolkitOverlay" onclick="closeJsonToolkit()"></div>
+    <div id="jsonToolkitPanel" class="json-toolkit-panel">
+        <iframe data-src="./dev-space/json-toolkit.html" class="json-toolkit-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Crypto Utils Side Panel -->
+    <div class="crypto-utils-overlay" id="cryptoUtilsOverlay" onclick="closeCryptoUtils()"></div>
+    <div id="cryptoUtilsPanel" class="crypto-utils-panel">
+        <iframe data-src="./dev-space/crypto-utils.html" class="crypto-utils-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Regex Workbench Side Panel -->
+    <div class="regex-workbench-overlay" id="regexWorkbenchOverlay" onclick="closeRegexWorkbench()"></div>
+    <div id="regexWorkbenchPanel" class="regex-workbench-panel">
+        <iframe data-src="./dev-space/regex-workbench.html" class="regex-workbench-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Markdown Editor Side Panel -->
+    <div class="markdown-editor-overlay" id="markdownEditorOverlay" onclick="closeMarkdownEditor()"></div>
+    <div id="markdownEditorPanel" class="markdown-editor-panel">
+        <iframe data-src="./dev-space/markdown-editor.html" class="markdown-editor-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Git Reference Side Panel -->
+    <div class="git-reference-overlay" id="gitReferenceOverlay" onclick="closeGitReference()"></div>
+    <div id="gitReferencePanel" class="git-reference-panel">
+        <iframe data-src="./dev-space/git-reference.html" class="git-reference-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Time & Date Side Panel -->
+    <div class="time-date-overlay" id="timeDateOverlay" onclick="closeTimeDate()"></div>
+    <div id="timeDatePanel" class="time-date-panel">
+        <iframe data-src="./dev-space/time-date.html" class="time-date-iframe" loading="lazy"></iframe>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-overlay" onclick="closeModal('settingsModal')"></div>
+        <div class="settings-panel">
+            <!-- Close Button -->
+            <button class="settings-close-btn" onclick="closeModal('settingsModal')">×</button>
+
+            <!-- Sidebar Navigation -->
+            <div class="settings-sidebar">
+                <div class="settings-logo">
+                    <img src="./images/prism-logo.svg" class="settings-logo-img">
+                </div>
+
+                <nav class="settings-nav">
+                    <div class="nav-item" data-section="themes">
+                        <span class="nav-icon">🎨</span>
+                        <span class="nav-text">Themes</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item active" data-section="clock">
+                        <span class="nav-icon">🕐</span>
+                        <span class="nav-text">Clock</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="focus">
+                        <span class="nav-icon">⏱️</span>
+                        <span class="nav-text">Focus Timer</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="stats">
+                        <span class="nav-icon">📊</span>
+                        <span class="nav-text">Stats</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="music">
+                        <span class="nav-icon">🎵</span>
+                        <span class="nav-text">Music</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="notepad">
+                        <span class="nav-icon">📝</span>
+                        <span class="nav-text">Notepad</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="sounds">
+                        <span class="nav-icon">🔊</span>
+                        <span class="nav-text">Sounds</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="quotes">
+                        <span class="nav-icon">💬</span>
+                        <span class="nav-text">Quotes</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="extras">
+                        <span class="nav-icon">⚡</span>
+                        <span class="nav-text">Extras</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="profile">
+                        <span class="nav-icon">👤</span>
+                        <span class="nav-text">Profile</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                    <div class="nav-item" data-section="support">
+                        <span class="nav-icon">❓</span>
+                        <span class="nav-text">Support & Feedback</span>
+                        <span class="nav-dirty-dot"></span>
+                    </div>
+                </nav>
+
+                <div class="settings-footer">
+                    <button type="button" class="settings-footer-link">
+                        <span>⚡</span>
+                        Explore Prism Plus
+                    </button>
+                    <button type="button" class="settings-footer-link">
+                        <span>🎁</span>
+                        Share with friends
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="settings-content">
+                <!-- Clock Section -->
+                <div class="settings-section active" id="clock-section">
+                    <h2 class="section-title">Clock Format</h2>
+
+                    <div class="clock-options">
+                        <div class="clock-card" data-format="12">
+                            <div class="clock-preview">
+                                <div class="preview-time" id="preview-12h">2:24</div>
+                            </div>
+                            <div class="clock-label">12-hour</div>
+                        </div>
+                        <div class="clock-card active" data-format="24">
+                            <div class="clock-preview gradient-pink">
+                                <div class="preview-time" id="preview-24h">14:24</div>
+                            </div>
+                            <div class="clock-label">24-hour</div>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title">Clock Color</h2>
+
+                    <div class="color-picker-section">
+                        <div class="color-picker-wrapper">
+                            <label for="clockColorPicker" class="color-picker-label">
+                                <span>Choose clock color:</span>
+                                <div class="color-input-container">
+                                    <input type="color" id="clockColorPicker" value="#ffffff">
+                                    <input type="text" id="clockColorValue" value="#ffffff" maxlength="7"
+                                        pattern="#[0-9a-fA-F]{6}">
+                                </div>
+                            </label>
+                            <button class="btn-reset-color" onclick="resetClockColor()">Reset to Default</button>
+
+                            <div class="color-history-section">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span class="color-history-label">Recent Colors:</span>
+                                    <button class="btn-clear-history" onclick="clearColorHistory()"
+                                        title="Clear color history">Clear History</button>
+                                </div>
+                                <div class="color-history" id="colorHistory"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title">Clock Style</h2>
+
+                    <div class="style-grid">
+                        <div class="style-card active" data-style="default">
+                            <iframe src="./clock-previews/default.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Default</div>
+                        </div>
+                        <div class="style-card" data-style="minimal">
+                            <iframe src="./clock-previews/minimal.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Minimal</div>
+                        </div>
+                        <div class="style-card" data-style="serif">
+                            <iframe src="./clock-previews/serif.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Serif</div>
+                        </div>
+                        <div class="style-card" data-style="handwritten">
+                            <iframe src="./clock-previews/handwritten.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Handwritten</div>
+                        </div>
+                        <div class="style-card" data-style="minimal-light">
+                            <iframe src="./clock-previews/minimal-light.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Permanent Marker</div>
+                        </div>
+                        <div class="style-card" data-style="serif-condensed">
+                            <iframe src="./clock-previews/serif-condensed.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Serif Condensed</div>
+                        </div>
+                        <div class="style-card" data-style="bitcount">
+                            <iframe src="./clock-previews/bitcount.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Bitcount Grid</div>
+                        </div>
+                        <div class="style-card" data-style="corpta">
+                            <iframe src="./clock-previews/corpta.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Corpta</div>
+                        </div>
+                        <div class="style-card" data-style="fenotype">
+                            <iframe src="./clock-previews/fenotype.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Fenotype Wonder</div>
+                        </div>
+                        <div class="style-card" data-style="nclkemgor">
+                            <iframe src="./clock-previews/nclkemgor.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">NCL Kemgor</div>
+                        </div>
+                        <div class="style-card" data-style="westiva">
+                            <iframe src="./clock-previews/westiva.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Westiva</div>
+                        </div>
+                        <div class="style-card" data-style="ammonite">
+                            <iframe src="./clock-previews/ammonite.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Ammonite</div>
+                        </div>
+                        <div class="style-card" data-style="crude">
+                            <iframe src="./clock-previews/crude.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Crude</div>
+                        </div>
+                        <div class="style-card" data-style="ghetto">
+                            <iframe src="./clock-previews/ghetto.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Ghetto</div>
+                        </div>
+                        <div class="style-card" data-style="zombiess">
+                            <iframe src="./clock-previews/zombiess.html" class="style-preview-iframe"
+                                loading="lazy"></iframe>
+                            <div class="style-name">Zombiess</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Themes Section -->
+                <div class="settings-section" id="themes-section">
+                    <h2 class="section-title">Themes</h2>
+                    <div class="theme-grid">
+                        <div class="theme-card active" data-theme="home">
+                            <div class="theme-preview home-theme">
+                                <div
+                                    style="font-size: 48px; font-weight: 600; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+                                    12:34</div>
+                            </div>
+                            <div class="theme-name">Home</div>
+                        </div>
+                        <div class="theme-card" data-theme="focus">
+                            <div class="theme-preview focus-theme">
+                                <div
+                                    style="font-size: 36px; font-weight: 600; color: white; text-shadow: 0 0 20px rgba(255,255,255,0.5);">
+                                    ⏱️ 25:00</div>
+                            </div>
+                            <div class="theme-name">Focus</div>
+                        </div>
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 40px;">Background</h2>
+                    <div style="margin-bottom: 16px;">
+                        <input type="file" id="wallpaperUpload" accept="image/*" onchange="uploadWallpaper(event)"
+                            style="display: none;">
+                        <button class="btn-upload" onclick="document.getElementById('wallpaperUpload').click()">Upload
+                            Custom Wallpaper</button>
+                    </div>
+                    <div class="background-grid" id="backgroundGrid">
+                        <div class="background-card" data-bg="default" onclick="selectBackground('default')">
+                            <img src="./images/BG.png" class="background-preview-img" alt="Default Background">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (1).jpg"
+                            onclick="selectBackground('./images/Wallpapers/1 (1).jpg')">
+                            <img src="./images/Wallpapers/1 (1).jpg" class="background-preview-img" alt="Wallpaper 1">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (1).png"
+                            onclick="selectBackground('./images/Wallpapers/1 (1).png')">
+                            <img src="./images/Wallpapers/1 (1).png" class="background-preview-img" alt="Wallpaper 2">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (2).jpg"
+                            onclick="selectBackground('./images/Wallpapers/1 (2).jpg')">
+                            <img src="./images/Wallpapers/1 (2).jpg" class="background-preview-img" alt="Wallpaper 3">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (2).png"
+                            onclick="selectBackground('./images/Wallpapers/1 (2).png')">
+                            <img src="./images/Wallpapers/1 (2).png" class="background-preview-img" alt="Wallpaper 4">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (3).jpg"
+                            onclick="selectBackground('./images/Wallpapers/1 (3).jpg')">
+                            <img src="./images/Wallpapers/1 (3).jpg" class="background-preview-img" alt="Wallpaper 5">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (3).png"
+                            onclick="selectBackground('./images/Wallpapers/1 (3).png')">
+                            <img src="./images/Wallpapers/1 (3).png" class="background-preview-img" alt="Wallpaper 6">
+                        </div>
+                        <div class="background-card" data-bg="./images/Wallpapers/1 (4).png"
+                            onclick="selectBackground('./images/Wallpapers/1 (4).png')">
+                            <img src="./images/Wallpapers/1 (4).png" class="background-preview-img" alt="Wallpaper 7">
+                        </div>
+                    </div>
+
+                    <h2 class="section-title" style="margin-top: 40px;">Animated Background</h2>
+                    <div style="margin-bottom: 16px;">
+                        <input type="file" id="animatedBgUpload" accept="image/gif,.gif"
+                            onchange="uploadAnimatedBg(event)" style="display: none;">
+                        <button class="btn-upload" onclick="document.getElementById('animatedBgUpload').click()">Upload
+                            Custom GIF</button>
+                    </div>
+                    <div class="background-grid" id="animatedBackgroundGrid">
+                        <div class="background-card" data-bg="none" onclick="selectAnimatedBackground('none')">
+                            <div class="background-preview"
+                                style="background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; color: white;">
+                                <span class="background-label">None</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Focus Timer Section -->
+                <div class="settings-section" id="focus-section">
+                    <h2 class="section-title">Focus Timer</h2>
+                    <iframe src="./dev-space/focus-settings.html" class="focus-settings-iframe" frameborder="0"
+                        loading="lazy"></iframe>
+                </div>
+
+                <div class="settings-section" id="stats-section">
+                    <h2 class="section-title">Statistics</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Statistics settings coming soon...</p>
+                </div>
+
+                <div class="settings-section" id="music-section">
+                    <h2 class="section-title">Music</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Music settings coming soon...</p>
+                </div>
+
+                <div class="settings-section" id="notepad-section">
+                    <h2 class="section-title">Notepad</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Notepad settings coming soon...</p>
+                </div>
+
+                <div class="settings-section" id="sounds-section">
+                    <h2 class="section-title">Sounds</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Sounds settings coming soon...</p>
+                </div>
+
+                <div class="settings-section" id="quotes-section">
+                    <h2 class="section-title">Quotes & Greetings</h2>
+
+                    <div class="toggle-section">
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Show dynamic greetings</div>
+                                <div class="toggle-desc">Turn off for generic greetings.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dynamicGreetings" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Show greetings</div>
+                                <div class="toggle-desc">Turn off to hide dashboard greetings.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="showGreetings" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="extras-section">
+                    <h2 class="section-title">Extras</h2>
+
+                    <div class="toggle-section">
+                        <div class="toggle-row">
+                            <div class="toggle-info">
+                                <div class="toggle-title">Matrix Display</div>
+                                <div class="toggle-desc">Show animated matrix display in bottom corner. Click to cycle
+                                    animations.</div>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="matrixDisplay" checked onchange="toggleMatrix(this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section" id="profile-section">
+                    <h2 class="section-title">Profile</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Profile settings coming soon...</p>
+                </div>
+
+                <div class="settings-section" id="support-section">
+                    <h2 class="section-title">Support & Feedback</h2>
+                    <p style="color: rgba(255,255,255,0.6);">Support options coming soon...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Box (Simple) -->
+    <div id="bgBox" class="bgBox">
+        <h3>Customize Background</h3>
+        <label>
+            Pick Color:
+            <input type="color" id="colorPicker">
+        </label>
+        <br><br>
+        <label class="custom-file-upload">
+            Upload Image:
+            <input type="file" id="imagePicker" accept="image/*">
+        </label>
+        <!-- Opacity Slider -->
+        <label><br>
+            Background Opacity
+            <input type="range" id="opacitySlider" min="0" max="100" value="50">
+            <span id="opacityValue">50%</span>
+        </label>
+        <br><br>
+        <button onclick="resetBackground()">Reset</button>
+        <button onclick="toggleSettings()">Close</button>
+    </div>
+
+</body>
+
+</html>

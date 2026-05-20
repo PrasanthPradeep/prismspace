@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time & Date Utility</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        .header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tabs {
+            display: flex;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0 1rem;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+            font-size: 0.9rem;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+        .tab-btn:hover {
+            color: #00ff88;
+        }
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        textarea, input {
+            width: 100%;
+            background: #1a1f3a;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        label {
+            display: block;
+            margin: 1rem 0 0.5rem 0;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .output-box {
+            background: #0a0e27;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-size: 0.9rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .info-box {
+            background: #1a1f3a;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+        }
+        .info-box-label {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .info-box-value {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.1rem;
+            word-break: break-word;
+        }
+        .clock-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .clock-box {
+            background: #1a1f3a;
+            padding: 1.5rem;
+            border-radius: 4px;
+            border: 1px solid #333;
+            text-align: center;
+        }
+        .clock-time {
+            font-size: 1.5rem;
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .clock-zone {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .clock-offset {
+            color: #667;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+        .slider-group {
+            margin: 1.5rem 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            font-size: 0.9rem;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .button-group button {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🕐 Time & Date Utility</h1>
+            <button onclick="try { parent.postMessage({action: 'closeTimeDate'}, '*'); } catch(e) { window.close(); }">Close</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'timestamp')">Timestamp</button>
+            <button class="tab-btn" onclick="switchTab(event, 'clock')">World Clock</button>
+            <button class="tab-btn" onclick="switchTab(event, 'cron')">Cron</button>
+            <button class="tab-btn" onclick="switchTab(event, 'math')">Date Math</button>
+            <button class="tab-btn" onclick="switchTab(event, 'relative')">Relative Time</button>
+        </div>
+
+        <div class="content">
+            <!-- Timestamp Tab -->
+            <div id="timestamp" class="tab-pane active">
+                <label>Timestamp Input (auto-detect)</label>
+                <input id="timestampInput" type="text" placeholder="Paste epoch ms, epoch seconds, or ISO date..." onkeyup="convertTimestamp()">
+
+                <div id="timestampOutput"></div>
+            </div>
+
+            <!-- World Clock Tab -->
+            <div id="clock" class="tab-pane">
+                <label>Timezone Configuration</label>
+                <div id="tzConfig"></div>
+
+                <div class="clock-grid" id="worldClock"></div>
+            </div>
+
+            <!-- Cron Tab -->
+            <div id="cron" class="tab-pane">
+                <label>Cron Expression Builder</label>
+                
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Minutes (0-59)</span>
+                        <span id="cronMinLabel">*</span>
+                    </div>
+                    <input type="range" id="cronMin" min="0" max="59" value="0" onchange="updateCronExpression()">
+                </div>
+
+                <div class="slider-group">
+                    <div class="slider-label">
+                        <span>Hours (0-23)</span>
+                        <span id="cronHourLabel">*</span>
+                    </div>
+                    <input type="range" id="cronHour" min="0" max="23" value="0" onchange="updateCronExpression()">
+                </div>
+
+                <div class="button-group">
+                    <button onclick="setCronAll()">Reset to Every</button>
+                </div>
+
+                <label>Cron Expression</label>
+                <div class="output-box" id="cronExpression" onclick="copyCron()">* * * * *</div>
+
+                <label>Or Paste & Parse Cron</label>
+                <input id="cronPaste" type="text" placeholder="Paste cron expression..." onkeyup="parseCronExpression()">
+
+                <div id="cronExplanation"></div>
+            </div>
+
+            <!-- Date Math Tab -->
+            <div id="math" class="tab-pane">
+                <label>Date 1</label>
+                <input id="dateMath1" type="date">
+
+                <label>Date 2</label>
+                <input id="dateMath2" type="date">
+
+                <div class="button-group" style="margin-bottom: 1.5rem;">
+                    <button onclick="calculateDateDiff('days')">Days Between</button>
+                    <button onclick="calculateDateDiff('weeks')">Weeks</button>
+                    <button onclick="calculateDateDiff('months')">Months</button>
+                    <button onclick="calculateDateDiff('years')">Years</button>
+                </div>
+
+                <div id="mathOutput"></div>
+
+                <label style="margin-top: 2rem;">Add/Subtract Duration</label>
+                <div style="display: grid; grid-template-columns: 1fr 100px; gap: 0.5rem; margin-bottom: 1rem;">
+                    <input id="baseDate" type="date">
+                    <select id="durationUnit">
+                        <option value="days">Days</option>
+                        <option value="weeks">Weeks</option>
+                        <option value="months">Months</option>
+                        <option value="years">Years</option>
+                    </select>
+                </div>
+                <div style="display: grid; grid-template-columns: 100px 1fr; gap: 0.5rem;">
+                    <input id="durationAmount" type="number" placeholder="Amount" value="1">
+                    <button onclick="calculateDuration()">Calculate</button>
+                </div>
+
+                <div id="durationOutput"></div>
+            </div>
+
+            <!-- Relative Time Tab -->
+            <div id="relative" class="tab-pane">
+                <label>Enter Date/Time</label>
+                <input id="relativeInput" type="datetime-local" onkeyup="updateRelativeTime()">
+
+                <div id="relativeOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const timezones = ['America/New_York', 'Europe/London', 'Asia/Tokyo', 'Australia/Sydney', 'America/Los_Angeles', 'Asia/Dubai'];
+
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+
+            if (tabName === 'clock') initWorldClock();
+            if (tabName === 'relative') {
+                document.getElementById('relativeInput').value = new Date().toISOString().slice(0, 16);
+                updateRelativeTime();
+            }
+        }
+
+        // Timestamp Converter
+        function convertTimestamp() {
+            const input = document.getElementById('timestampInput').value.trim();
+            if (!input) {
+                document.getElementById('timestampOutput').innerHTML = '';
+                return;
+            }
+
+            let timestamp = parseFloat(input);
+            let date;
+
+            // Auto-detect format
+            if (input.match(/^\d{10}$/)) {
+                // Unix timestamp in seconds
+                date = new Date(timestamp * 1000);
+            } else if (input.match(/^\d{13}$/)) {
+                // Unix timestamp in ms
+                date = new Date(timestamp);
+            } else if (input.match(/^\d{4}-\d{2}-\d{2}/)) {
+                // ISO date format
+                date = new Date(input);
+            } else {
+                document.getElementById('timestampOutput').innerHTML = '<div style="color: #ff4444;">❌ Invalid format</div>';
+                return;
+            }
+
+            if (isNaN(date.getTime())) {
+                document.getElementById('timestampOutput').innerHTML = '<div style="color: #ff4444;">❌ Invalid date</div>';
+                return;
+            }
+
+            const ms = date.getTime();
+            const sec = Math.floor(ms / 1000);
+
+            document.getElementById('timestampOutput').innerHTML = `
+                <div class="info-box">
+                    <div class="info-box-label">ISO 8601</div>
+                    <div class="info-box-value">${date.toISOString()}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-label">Unix (seconds)</div>
+                    <div class="info-box-value">${sec}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-label">Unix (milliseconds)</div>
+                    <div class="info-box-value">${ms}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-label">Human Readable</div>
+                    <div class="info-box-value">${date.toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        // World Clock
+        function initWorldClock() {
+            const tzConfig = document.getElementById('tzConfig');
+            let html = '<div class="button-group">';
+            timezones.forEach((tz, i) => {
+                html += `<button onclick="changeTz(${i}, this)">${tz.split('/')[1]}</button>`;
+            });
+            html += '</div>';
+            tzConfig.innerHTML = html;
+            updateWorldClock();
+            setInterval(updateWorldClock, 1000);
+        }
+
+        function updateWorldClock() {
+            const clock = document.getElementById('worldClock');
+            let html = '';
+            
+            const now = new Date();
+            timezones.forEach(tz => {
+                const time = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz,
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                }).format(now);
+
+                const offset = getTimezoneOffset(tz);
+                const city = tz.split('/')[1].replace(/_/g, ' ');
+
+                html += `
+                    <div class="clock-box">
+                        <div class="clock-time">${time}</div>
+                        <div class="clock-zone">${city}</div>
+                        <div class="clock-offset">${offset}</div>
+                    </div>
+                `;
+            });
+            
+            clock.innerHTML = html;
+        }
+
+        function getTimezoneOffset(tz) {
+            const now = new Date();
+            const utc = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'UTC',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).format(now);
+
+            const local = new Intl.DateTimeFormat('en-US', {
+                timeZone: tz,
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            }).format(now);
+
+            const [utcH, utcM] = utc.split(':');
+            const [locH, locM] = local.split(':');
+            const diffHours = (parseInt(locH) - parseInt(utcH) + 24) % 24;
+            const diffMins = (parseInt(locM) - parseInt(utcM) + 60) % 60;
+
+            return `UTC${diffHours >= 0 ? '+' : ''}${diffHours}:${String(diffMins).padStart(2, '0')}`;
+        }
+
+        function changeTz(idx, el) {
+            // Placeholder for timezone selection
+        }
+
+        // Cron Expression Builder
+        function updateCronExpression() {
+            const min = document.getElementById('cronMin').value;
+            const hour = document.getElementById('cronHour').value;
+            
+            document.getElementById('cronMinLabel').textContent = min || '*';
+            document.getElementById('cronHourLabel').textContent = hour || '*';
+            
+            const expr = `${min || '*'} ${hour || '*'} * * *`;
+            document.getElementById('cronExpression').textContent = expr;
+        }
+
+        function setCronAll() {
+            document.getElementById('cronMin').value = 0;
+            document.getElementById('cronHour').value = 0;
+            updateCronExpression();
+        }
+
+        function copyCron() {
+            const expr = document.getElementById('cronExpression').textContent;
+            navigator.clipboard.writeText(expr);
+            alert('✓ Copied: ' + expr);
+        }
+
+        function parseCronExpression() {
+            const input = document.getElementById('cronPaste').value.trim();
+            if (!input) {
+                document.getElementById('cronExplanation').innerHTML = '';
+                return;
+            }
+
+            const parts = input.split(' ');
+            if (parts.length < 5) {
+                document.getElementById('cronExplanation').innerHTML = '<div style="color: #ff4444;">❌ Invalid cron format</div>';
+                return;
+            }
+
+            const [min, hour, day, month, dow] = parts;
+            let explanation = `
+                <div class="info-box">
+                    <div class="info-box-label">Cron Expression</div>
+                    <div class="info-box-value">${input}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-label">Meaning</div>
+                    <div class="info-box-value" style="font-size: 0.95rem;">
+                        At ${hour === '*' ? 'every hour' : 'hour ' + hour} and minute ${min === '*' ? 'every' : min}<br>
+                        On day ${day === '*' ? 'every' : day} of month ${month === '*' ? 'every' : month}
+                    </div>
+                </div>
+            `;
+            document.getElementById('cronExplanation').innerHTML = explanation;
+        }
+
+        // Date Math
+        function calculateDateDiff(unit) {
+            const d1 = new Date(document.getElementById('dateMath1').value);
+            const d2 = new Date(document.getElementById('dateMath2').value);
+
+            if (!d1.getTime() || !d2.getTime()) {
+                document.getElementById('mathOutput').innerHTML = '<div style="color: #ff4444;">❌ Select both dates</div>';
+                return;
+            }
+
+            const diffMs = Math.abs(d2 - d1);
+            let result;
+
+            switch (unit) {
+                case 'days': result = Math.floor(diffMs / (1000 * 60 * 60 * 24)); break;
+                case 'weeks': result = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 7)); break;
+                case 'months': result = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44)); break;
+                case 'years': result = Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25)); break;
+            }
+
+            document.getElementById('mathOutput').innerHTML = `
+                <div class="output-box">
+                    Difference: <strong style="color: #00ff88; font-size: 1.2rem;">${result}</strong> ${unit}
+                </div>
+            `;
+        }
+
+        function calculateDuration() {
+            const base = new Date(document.getElementById('baseDate').value);
+            const amount = parseInt(document.getElementById('durationAmount').value);
+            const unit = document.getElementById('durationUnit').value;
+
+            if (!base.getTime()) {
+                document.getElementById('durationOutput').innerHTML = '<div style="color: #ff4444;">❌ Select a date</div>';
+                return;
+            }
+
+            const result = new Date(base);
+            switch (unit) {
+                case 'days': result.setDate(result.getDate() + amount); break;
+                case 'weeks': result.setDate(result.getDate() + amount * 7); break;
+                case 'months': result.setMonth(result.getMonth() + amount); break;
+                case 'years': result.setFullYear(result.getFullYear() + amount); break;
+            }
+
+            const sign = amount >= 0 ? '+' : '';
+            document.getElementById('durationOutput').innerHTML = `
+                <div class="output-box">
+                    <div style="margin-bottom: 0.5rem;">${base.toDateString()} ${sign}${amount} ${unit}</div>
+                    <strong style="color: #00ff88;">${result.toDateString()}</strong>
+                </div>
+            `;
+        }
+
+        // Relative Time
+        function updateRelativeTime() {
+            const input = document.getElementById('relativeInput').value;
+            if (!input) return;
+
+            const date = new Date(input);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+
+            let relative;
+            if (diffSec < 0) {
+                const futureMs = -diffMs;
+                const futureDay = Math.floor(futureMs / (1000 * 60 * 60 * 24));
+                if (futureDay === 0) relative = 'Today';
+                else if (futureDay === 1) relative = 'Tomorrow';
+                else relative = `In ${futureDay} days`;
+            } else {
+                if (diffSec < 60) relative = diffSec + ' seconds ago';
+                else if (diffMin < 60) relative = diffMin + ' minutes ago';
+                else if (diffHour < 24) relative = diffHour + ' hours ago';
+                else if (diffDay === 1) relative = 'Yesterday';
+                else relative = diffDay + ' days ago';
+            }
+
+            document.getElementById('relativeOutput').innerHTML = `
+                <div class="info-box">
+                    <div class="info-box-label">Relative Time</div>
+                    <div class="info-box-value">${relative}</div>
+                </div>
+                <div class="info-box">
+                    <div class="info-box-label">Absolute Time</div>
+                    <div class="info-box-value">${date.toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        // Set initial dates
+        document.getElementById('baseDate').valueAsDate = new Date();
+        document.getElementById('dateMath1').valueAsDate = new Date();
+        document.getElementById('dateMath2').valueAsDate = new Date();
+    </script>
+</body>
+</html>

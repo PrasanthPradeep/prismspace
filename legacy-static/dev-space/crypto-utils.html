@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Utilities</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        .header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tabs {
+            display: flex;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0 1rem;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+        .tab-btn:hover {
+            color: #00ff88;
+        }
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        textarea, input {
+            width: 100%;
+            background: #1a1f3a;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            padding: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        textarea:focus, input:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .strength-meter {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        .strength-bar {
+            height: 100%;
+            width: 0%;
+            transition: all 0.3s;
+            background: #ff4444;
+        }
+        .strength-bar.weak { background: #ff4444; width: 25%; }
+        .strength-bar.fair { background: #ffaa00; width: 50%; }
+        .strength-bar.good { background: #ffcc00; width: 75%; }
+        .strength-bar.strong { background: #00ff88; width: 100%; }
+        .output-box {
+            background: #0a0e27;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-size: 0.85rem;
+            position: relative;
+            min-height: 50px;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+        .info-box {
+            background: #1a1f3a;
+            padding: 1rem;
+            border-radius: 4px;
+            border-left: 3px solid #00ff88;
+        }
+        .info-box-label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .info-box-value {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .checkbox-group {
+            display: flex;
+            gap: 1rem;
+            margin: 1rem 0;
+            flex-wrap: wrap;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .checkbox-label input {
+            margin-right: 0.5rem;
+        }
+        .slider-group {
+            margin: 1.5rem 0;
+        }
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            color: #00ff88;
+            font-size: 0.9rem;
+        }
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #333;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #00ff88;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Crypto Utilities</h1>
+            <button onclick="try { parent.postMessage({action: 'closeCryptoUtils'}, '*'); } catch(e) { window.close(); }">Close</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'hash')">Hash</button>
+            <button class="tab-btn" onclick="switchTab(event, 'base64')">Base64</button>
+            <button class="tab-btn" onclick="switchTab(event, 'url')">URL Encode</button>
+            <button class="tab-btn" onclick="switchTab(event, 'jwt')">JWT Decoder</button>
+            <button class="tab-btn" onclick="switchTab(event, 'uuid')">UUID Gen</button>
+            <button class="tab-btn" onclick="switchTab(event, 'password')">Password</button>
+        </div>
+
+        <div class="content">
+            <!-- Hash Tab -->
+            <div id="hash" class="tab-pane active">
+                <div class="form-group">
+                    <label for="hashInput">Input Text</label>
+                    <textarea id="hashInput" rows="4" placeholder="Enter text to hash..."></textarea>
+                </div>
+
+                <div class="button-group">
+                    <button onclick="hashText('md5')">MD5</button>
+                    <button onclick="hashText('sha1')">SHA-1</button>
+                    <button onclick="hashText('sha256')">SHA-256</button>
+                    <button onclick="hashText('sha512')">SHA-512</button>
+                </div>
+
+                <div class="output-box" id="hashOutput">
+                    Hash output will appear here
+                    <button class="copy-btn" onclick="copyToClipboard('hashOutput')">Copy</button>
+                </div>
+            </div>
+
+            <!-- Base64 Tab -->
+            <div id="base64" class="tab-pane">
+                <div class="form-group">
+                    <label for="base64Input">Text Input</label>
+                    <textarea id="base64Input" rows="4" placeholder="Enter text or base64..."></textarea>
+                </div>
+
+                <button onclick="encodeBase64()">Encode to Base64</button>
+                <button onclick="decodeBase64()">Decode from Base64</button>
+                <button onclick="encodeBase64URL()">Encode URL-Safe</button>
+                <button onclick="decodeBase64URL()">Decode URL-Safe</button>
+
+                <div class="output-box" id="base64Output">
+                    Result will appear here
+                    <button class="copy-btn" onclick="copyToClipboard('base64Output')">Copy</button>
+                </div>
+            </div>
+
+            <!-- URL Encode Tab -->
+            <div id="url" class="tab-pane">
+                <div class="form-group">
+                    <label for="urlInput">Input</label>
+                    <textarea id="urlInput" rows="4" placeholder="Enter text or URL..."></textarea>
+                </div>
+
+                <button onclick="urlEncode()">URL Encode</button>
+                <button onclick="urlDecode()">URL Decode</button>
+
+                <div class="output-box" id="urlOutput">
+                    Result will appear here
+                    <button class="copy-btn" onclick="copyToClipboard('urlOutput')">Copy</button>
+                </div>
+            </div>
+
+            <!-- JWT Decoder Tab -->
+            <div id="jwt" class="tab-pane">
+                <div class="form-group">
+                    <label for="jwtInput">JWT Token</label>
+                    <textarea id="jwtInput" rows="6" placeholder="Paste JWT token..."></textarea>
+                </div>
+
+                <div id="jwtOutput" style="margin: 1rem 0;">
+                    JWT will be decoded when you paste a token
+                </div>
+            </div>
+
+            <!-- UUID Generator Tab -->
+            <div id="uuid" class="tab-pane">
+                <div class="form-group">
+                    <label>Generate UUIDs</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="number" id="uuidCount" min="1" max="100" value="5" placeholder="Count (1-100)">
+                        <button onclick="generateUUIDs()">Generate</button>
+                    </div>
+                </div>
+
+                <div class="output-box" id="uuidOutput" style="max-height: 300px; overflow-y: auto;">
+                    UUIDs will appear here
+                    <button class="copy-btn" onclick="copyToClipboard('uuidOutput')">Copy</button>
+                </div>
+            </div>
+
+            <!-- Password Strength Tab -->
+            <div id="password" class="tab-pane">
+                <div class="form-group">
+                    <label for="passwordInput">Password</label>
+                    <textarea id="passwordInput" rows="4" placeholder="Enter password to analyze..."></textarea>
+                </div>
+
+                <div id="passwordAnalysis"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Switch tabs
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+        }
+
+        // MD5 implementation (basic)
+        function md5(str) {
+            function md5_init(msg) {
+                let A = 0x67452301, B = 0xefcdab89, C = 0x98badcfe, D = 0x10325476;
+                const k = [];
+                for (let i = 0; i < 64; i++) k[i] = Math.floor(Math.abs(Math.sin(i + 1)) * 0x100000000);
+                msg = str2bin(msg);
+                let tail = msg.length % 64;
+                msg += '\x80';
+                while ((msg.length % 64) !== 56) msg += '\x00';
+                for (let i = 0; i < 8; i++) msg += String.fromCharCode((str.length * 8) >> (i * 8) & 0xff);
+                
+                for (let m = 0; m < msg.length; m += 64) {
+                    let x = [];
+                    for (let i = 0; i < 16; i++) {
+                        x[i] = msg.charCodeAt(m + i * 4) | (msg.charCodeAt(m + i * 4 + 1) << 8) | 
+                               (msg.charCodeAt(m + i * 4 + 2) << 16) | (msg.charCodeAt(m + i * 4 + 3) << 24);
+                    }
+                    [A, B, C, D] = md5_main(A, B, C, D, x, k);
+                }
+                return [(A & 0xff), (A >> 8 & 0xff), (A >> 16 & 0xff), (A >> 24 & 0xff),
+                        (B & 0xff), (B >> 8 & 0xff), (B >> 16 & 0xff), (B >> 24 & 0xff),
+                        (C & 0xff), (C >> 8 & 0xff), (C >> 16 & 0xff), (C >> 24 & 0xff),
+                        (D & 0xff), (D >> 8 & 0xff), (D >> 16 & 0xff), (D >> 24 & 0xff)];
+            }
+            
+            function str2bin(str) {
+                let bin = '';
+                for (let i = 0; i < str.length; i++) bin += String.fromCharCode(str.charCodeAt(i));
+                return bin;
+            }
+            
+            function md5_main(A, B, C, D, X, k) {
+                for (let i = 0; i < 12; i++) {
+                    A = (A + ((B & C) | (~B & D)) + k[i] + X[i]) >>> 0; A = ((A << 7) | (A >>> 25)) >>> 0; A = (A + B) >>> 0;
+                    D = (D + ((A & B) | (~A & C)) + k[i + 1] + X[(i + 1) % 16]) >>> 0; D = ((D << 12) | (D >>> 20)) >>> 0; D = (D + A) >>> 0;
+                }
+                return [A, B, C, D];
+            }
+            
+            const hash = md5_init(msg);
+            return hash.map(x => ('0' + x.toString(16)).slice(-2)).join('');
+        }
+
+        // Hash function
+        async function hashText(algorithm) {
+            const input = document.getElementById('hashInput').value;
+            if (!input) {
+                document.getElementById('hashOutput').textContent = 'Please enter text to hash';
+                return;
+            }
+
+            let result = '';
+            
+            if (algorithm === 'md5') {
+                result = md5(input);
+            } else {
+                const algoMap = { 'sha1': 'SHA-1', 'sha256': 'SHA-256', 'sha512': 'SHA-512' };
+                const data = new TextEncoder().encode(input);
+                const hashBuffer = await crypto.subtle.digest(algoMap[algorithm], data);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                result = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            }
+
+            document.getElementById('hashOutput').innerHTML = result + '<button class="copy-btn" onclick="copyToClipboard(\'hashOutput\')">Copy</button>';
+        }
+
+        // Base64
+        function encodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            const encoded = btoa(unescape(encodeURIComponent(input)));
+            document.getElementById('base64Output').innerHTML = encoded + '<button class="copy-btn" onclick="copyToClipboard(\'base64Output\')">Copy</button>';
+        }
+
+        function decodeBase64() {
+            const input = document.getElementById('base64Input').value;
+            try {
+                const decoded = decodeURIComponent(escape(atob(input)));
+                document.getElementById('base64Output').innerHTML = decoded + '<button class="copy-btn" onclick="copyToClipboard(\'base64Output\')">Copy</button>';
+            } catch (e) {
+                document.getElementById('base64Output').innerHTML = '<span style="color: #ff4444;">❌ Invalid base64</span>';
+            }
+        }
+
+        function encodeBase64URL() {
+            const input = document.getElementById('base64Input').value;
+            const encoded = btoa(input).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            document.getElementById('base64Output').innerHTML = encoded + '<button class="copy-btn" onclick="copyToClipboard(\'base64Output\')">Copy</button>';
+        }
+
+        function decodeBase64URL() {
+            let input = document.getElementById('base64Input').value;
+            input = input.replace(/-/g, '+').replace(/_/g, '/');
+            while (input.length % 4) input += '=';
+            try {
+                const decoded = atob(input);
+                document.getElementById('base64Output').innerHTML = decoded + '<button class="copy-btn" onclick="copyToClipboard(\'base64Output\')">Copy</button>';
+            } catch (e) {
+                document.getElementById('base64Output').innerHTML = '<span style="color: #ff4444;">❌ Invalid base64</span>';
+            }
+        }
+
+        // URL Encode/Decode
+        function urlEncode() {
+            const input = document.getElementById('urlInput').value;
+            const encoded = encodeURIComponent(input);
+            document.getElementById('urlOutput').innerHTML = encoded + '<button class="copy-btn" onclick="copyToClipboard(\'urlOutput\')">Copy</button>';
+        }
+
+        function urlDecode() {
+            const input = document.getElementById('urlInput').value;
+            try {
+                const decoded = decodeURIComponent(input);
+                document.getElementById('urlOutput').innerHTML = decoded + '<button class="copy-btn" onclick="copyToClipboard(\'urlOutput\')">Copy</button>';
+            } catch (e) {
+                document.getElementById('urlOutput').innerHTML = '<span style="color: #ff4444;">❌ Invalid URL encoding</span>';
+            }
+        }
+
+        // JWT Decoder
+        document.getElementById('jwtInput').addEventListener('input', () => {
+            const jwt = document.getElementById('jwtInput').value.trim();
+            if (!jwt) {
+                document.getElementById('jwtOutput').innerHTML = 'JWT will be decoded when you paste a token';
+                return;
+            }
+
+            const parts = jwt.split('.');
+            if (parts.length !== 3) {
+                document.getElementById('jwtOutput').innerHTML = '<span style="color: #ff4444;">❌ Invalid JWT format</span>';
+                return;
+            }
+
+            try {
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                let expiry = 'No expiry set';
+                if (payload.exp) {
+                    const expiryDate = new Date(payload.exp * 1000);
+                    const now = new Date();
+                    const expired = expiryDate < now;
+                    expiry = `${expiryDate.toISOString()} (${expired ? '❌ Expired' : '✓ Valid'})`;
+                }
+
+                document.getElementById('jwtOutput').innerHTML = `
+                    <div class="info-box">
+                        <div class="info-box-label">Header</div>
+                        <pre style="font-size: 0.8rem; overflow-x: auto;">${JSON.stringify(header, null, 2)}</pre>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Payload</div>
+                        <pre style="font-size: 0.8rem; overflow-x: auto;">${JSON.stringify(payload, null, 2)}</pre>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Expiry</div>
+                        <div style="color: ${payload.exp && new Date(payload.exp * 1000) < new Date() ? '#ff4444' : '#00ff88'};">${expiry}</div>
+                    </div>
+                `;
+            } catch (e) {
+                document.getElementById('jwtOutput').innerHTML = '<span style="color: #ff4444;">❌ Failed to decode JWT</span>';
+            }
+        });
+
+        // UUID Generator
+        function generateUUIDs() {
+            const count = Math.min(Math.max(parseInt(document.getElementById('uuidCount').value) || 1, 1), 100);
+            let uuids = '';
+            for (let i = 0; i < count; i++) {
+                uuids += crypto.randomUUID() + '\n';
+            }
+            document.getElementById('uuidOutput').innerHTML = uuids.trim() + '<button class="copy-btn" onclick="copyToClipboard(\'uuidOutput\')">Copy</button>';
+        }
+
+        // Password Strength
+        document.getElementById('passwordInput').addEventListener('input', () => {
+            const password = document.getElementById('passwordInput').value;
+            analyzePassword(password);
+        });
+
+        function analyzePassword(password) {
+            if (!password) {
+                document.getElementById('passwordAnalysis').innerHTML = '';
+                return;
+            }
+
+            const entropy = calculateEntropy(password);
+            const strength = getStrength(entropy);
+            const crackTime = estimateCrackTime(entropy);
+            const suggestions = getSuggestions(password);
+
+            const strengthClass = strength === 'Weak' ? 'weak' : strength === 'Fair' ? 'fair' : strength === 'Good' ? 'good' : 'strong';
+
+            let html = `
+                <div class="info-grid">
+                    <div class="info-box">
+                        <div class="info-box-label">Length</div>
+                        <div class="info-box-value">${password.length} chars</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Entropy</div>
+                        <div class="info-box-value">${entropy.toFixed(1)} bits</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Strength</div>
+                        <div class="info-box-value" style="color: ${strengthClass === 'weak' ? '#ff4444' : strengthClass === 'fair' ? '#ffaa00' : strengthClass === 'good' ? '#ffcc00' : '#00ff88'};">${strength}</div>
+                    </div>
+                    <div class="info-box">
+                        <div class="info-box-label">Crack Time</div>
+                        <div class="info-box-value">${crackTime}</div>
+                    </div>
+                </div>
+                <div class="strength-meter">
+                    <div class="strength-bar ${strengthClass}"></div>
+                </div>
+            `;
+
+            if (suggestions.length > 0) {
+                html += '<div style="margin-top: 1rem;"><strong style="color: #ffaa00;">💡 Suggestions:</strong><ul style="margin-top: 0.5rem; margin-left: 1.5rem;">';
+                suggestions.forEach(s => html += `<li>${s}</li>`);
+                html += '</ul></div>';
+            }
+
+            document.getElementById('passwordAnalysis').innerHTML = html;
+        }
+
+        function calculateEntropy(password) {
+            let charspace = 0;
+            if (/[a-z]/.test(password)) charspace += 26;
+            if (/[A-Z]/.test(password)) charspace += 26;
+            if (/[0-9]/.test(password)) charspace += 10;
+            if (/[^a-zA-Z0-9]/.test(password)) charspace += 32;
+            return password.length * Math.log2(charspace);
+        }
+
+        function getStrength(entropy) {
+            if (entropy < 30) return 'Weak';
+            if (entropy < 60) return 'Fair';
+            if (entropy < 90) return 'Good';
+            return 'Strong';
+        }
+
+        function estimateCrackTime(entropy) {
+            const guessesPerSecond = 1e9;
+            const seconds = Math.pow(2, entropy) / (2 * guessesPerSecond);
+            if (seconds < 1) return 'Instant';
+            if (seconds < 60) return 'Seconds';
+            if (seconds < 3600) return 'Minutes';
+            if (seconds < 86400) return 'Hours';
+            if (seconds < 2.6e6) return 'Days';
+            if (seconds < 7.889e7) return 'Months';
+            return 'Years';
+        }
+
+        function getSuggestions(password) {
+            const suggestions = [];
+            if (password.length < 12) suggestions.push('Use at least 12 characters');
+            if (!/[A-Z]/.test(password)) suggestions.push('Add uppercase letters');
+            if (!/[a-z]/.test(password)) suggestions.push('Add lowercase letters');
+            if (!/[0-9]/.test(password)) suggestions.push('Add numbers');
+            if (!/[^a-zA-Z0-9]/.test(password)) suggestions.push('Add special characters');
+            return suggestions;
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent.replace('Copy', '').trim();
+            navigator.clipboard.writeText(text);
+            const btn = event.target;
+            const orig = btn.textContent;
+            btn.textContent = '✓ Copied!';
+            setTimeout(() => btn.textContent = orig, 2000);
+        }
+    </script>
+</body>
+</html>

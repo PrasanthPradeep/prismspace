@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notepad</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .notepad-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+        }
+
+        .notepad-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .notepad-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .notepad-title .plus-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .notepad-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .close-notepad-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .close-notepad-btn:hover {
+            background: rgba(255, 77, 77, 0.2);
+            border-color: rgba(255, 77, 77, 0.4);
+            color: #ff4d4d;
+        }
+
+        .notepad-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.03);
+            flex-wrap: wrap;
+            max-height: 120px;
+            overflow-y: auto;
+        }
+
+        .toolbar-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-weight: 600;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        .toolbar-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .toolbar-separator {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 8px;
+        }
+
+        .toolbar-heading-select {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .toolbar-heading-select:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .toolbar-heading-select option {
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        .notepad-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .notepad-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 12px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            overflow-x: auto;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .notepad-tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.85);
+            position: relative;
+        }
+
+        .notepad-tab:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .notepad-tab.active {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.35);
+            color: #fff;
+        }
+
+        .tab-name {
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .tab-name-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            min-width: 100px;
+        }
+
+        .tab-edit {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            padding: 2px 6px;
+            opacity: 0;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .notepad-tab:hover .tab-edit {
+            opacity: 1;
+        }
+
+        .tab-edit:hover {
+            color: rgba(255, 255, 255, 0.9);
+            transform: scale(1.1);
+        }
+
+        .tab-close {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+            line-height: 1;
+            padding: 0 4px;
+            transition: all 0.2s;
+        }
+
+        .tab-close:hover {
+            color: #ff6b6b;
+            transform: scale(1.2);
+        }
+
+        .tab-add {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: bold;
+        }
+
+        .tab-add:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+            color: #fff;
+            transform: scale(1.05);
+        }
+
+        .saved-notes-section {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .saved-notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 8px 0;
+            user-select: none;
+        }
+
+        .saved-notes-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .saved-notes-toggle {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            transition: transform 0.2s;
+        }
+
+        .saved-notes-toggle.expanded {
+            transform: rotate(180deg);
+        }
+
+        .saved-notes-list {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .saved-notes-list.expanded {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 12px;
+        }
+
+        .saved-note-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .saved-note-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .saved-note-info {
+            flex: 1;
+        }
+
+        .saved-note-name {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 4px;
+        }
+
+        .saved-note-preview {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .editor-wrapper {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .editor-area {
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            color: #fff;
+            font-family: 'Courier New', monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .editor-area:focus {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .editor-area::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Scrollbar Styles */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 8px 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .checklist-checkbox {
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            background: transparent;
+            transition: all 0.2s;
+            margin-top: 2px;
+        }
+
+        .checklist-checkbox:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .checklist-checkbox.checked {
+            background: #667eea;
+            border-color: #667eea;
+            position: relative;
+        }
+
+        .checklist-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .checklist-text {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        .checklist-text.completed {
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .checklist-delete {
+            color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            padding: 4px;
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .checklist-item:hover .checklist-delete {
+            opacity: 1;
+        }
+
+        .checklist-delete:hover {
+            color: #ff4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="notepad-container">
+        <div class="notepad-header">
+            <div class="notepad-title">
+                <span>📝 Notepad</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="notepad-stats">
+                    <span>Word count: <strong id="wordCount">0</strong></span>
+                    <span>|</span>
+                    <span>Character count: <strong id="charCount">0</strong></span>
+                </div>
+                <button class="action-btn" onclick="saveCurrentNote()" title="Save note">💾</button>
+                <button class="action-btn" onclick="downloadCurrentNote()" title="Download note">⬇️</button>
+                <button class="action-btn" onclick="resetCurrentNote()" title="Reset note">🔄</button>
+                <button class="close-notepad-btn" onclick="closePanel()" title="Close notepad">×</button>
+            </div>
+        </div>
+
+        <div class="notepad-toolbar">
+            <button class="toolbar-btn" onclick="formatText('bold')" title="Bold (Ctrl+B)">
+                <strong>B</strong>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('italic')" title="Italic (Ctrl+I)">
+                <em>I</em>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('underline')" title="Underline (Ctrl+U)">
+                <u>U</u>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('strikethrough')" title="Strikethrough">
+                <s>S</s>
+            </button>
+            
+            <div class="toolbar-separator"></div>
+            
+            <select class="toolbar-heading-select" onchange="applyHeading(this.value); this.value='';" title="Heading">
+                <option value="">Heading</option>
+                <option value="h1">Heading 1</option>
+                <option value="h2">Heading 2</option>
+                <option value="h3">Heading 3</option>
+            </select>
+
+            <select class="toolbar-heading-select" onchange="applyFont(this.value)" id="fontSelect" title="Font Family">
+                <option value="'Courier New', monospace">Courier New</option>
+                <option value="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">System Font</option>
+                <option value="'Georgia', serif">Georgia</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Arial', sans-serif">Arial</option>
+                <option value="'Verdana', sans-serif">Verdana</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans</option>
+                <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
+            </select>
+
+            <select class="toolbar-heading-select" onchange="applyFontWeight(this.value)" id="fontWeightSelect" title="Font Weight">
+                <option value="300">Light</option>
+                <option value="400" selected>Normal</option>
+                <option value="500">Medium</option>
+                <option value="600">Semi-Bold</option>
+                <option value="700">Bold</option>
+                <option value="900">Black</option>
+            </select>
+            
+            <div class="toolbar-separator"></div>
+            
+            <button class="toolbar-btn" onclick="formatText('quote')" title="Quote">
+                <span>❝❞</span>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('bulletList')" title="Bullet List">
+                <span>⋮≡</span>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('numberList')" title="Number List">
+                <span>≣</span>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('checklist')" title="Checklist">
+                <span>☐</span>
+            </button>
+            
+            <div class="toolbar-separator"></div>
+            
+            <button class="toolbar-btn" onclick="formatText('indent')" title="Indent">
+                <span>⇥</span>
+            </button>
+            <button class="toolbar-btn" onclick="formatText('outdent')" title="Outdent">
+                <span>⇤</span>
+            </button>
+            
+            <div class="toolbar-separator"></div>
+            
+            <button class="toolbar-btn" onclick="insertFormula()" title="Formula">
+                <span>ƒₓ</span>
+            </button>
+        </div>
+
+        <div class="notepad-content">
+            <div class="notepad-tabs">
+                <div class="notepad-tab active" data-tab="0" onclick="switchTab(0)">
+                    <span>Your ideas here</span>
+                </div>
+                <div class="tab-add" onclick="addNewTab()" title="New Note">+</div>
+            </div>
+
+            <div class="saved-notes-section">
+                <div class="saved-notes-header" onclick="toggleSavedNotes()">
+                    <span class="saved-notes-title">📋 Previously Saved Notes</span>
+                    <span class="saved-notes-toggle" id="savedNotesToggle">▼</span>
+                </div>
+                <div class="saved-notes-list" id="savedNotesList">
+                    <!-- Notes will be dynamically added here -->
+                </div>
+            </div>
+
+            <div class="editor-wrapper" id="editorWrapper">
+                <textarea class="editor-area" id="noteEditor" placeholder="Start typing your notes here..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let notes = [];
+        let currentTabIndex = 0;
+
+        // Initialize
+        function init() {
+            loadNotes();
+            updateStats();
+            updateSavedNotesList();
+            loadFontPreferences();
+            
+            const editor = document.getElementById('noteEditor');
+            editor.addEventListener('input', function() {
+                updateStats();
+                autoSaveNote();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    if (e.key === 'b') {
+                        e.preventDefault();
+                        formatText('bold');
+                    } else if (e.key === 'i') {
+                        e.preventDefault();
+                        formatText('italic');
+                    } else if (e.key === 'u') {
+                        e.preventDefault();
+                        formatText('underline');
+                    } else if (e.key === 's') {
+                        e.preventDefault();
+                        saveNote();
+                    }
+                }
+            });
+
+            // Auto-continue bullets and checkboxes on Enter
+            editor.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') {
+                    const cursorPos = editor.selectionStart;
+                    const text = editor.value;
+                    const lines = text.substring(0, cursorPos).split('\n');
+                    const currentLine = lines[lines.length - 1];
+                    
+                    // Check for bullet points
+                    const bulletMatch = currentLine.match(/^(\s*)(•|\*|-|\+)\s/);
+                    if (bulletMatch) {
+                        e.preventDefault();
+                        const indent = bulletMatch[1];
+                        const bullet = bulletMatch[2];
+                        
+                        // If line only has bullet (empty), remove it
+                        if (currentLine.trim() === bullet) {
+                            const newText = text.substring(0, cursorPos - currentLine.length) + 
+                                          text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos - currentLine.length;
+                        } else {
+                            const newLine = `\n${indent}${bullet} `;
+                            const newText = text.substring(0, cursorPos) + newLine + text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos + newLine.length;
+                        }
+                        updateStats();
+                        autoSaveNote();
+                        return;
+                    }
+                    
+                    // Check for checkboxes
+                    const checkboxMatch = currentLine.match(/^(\s*)(☐|☑|☒)\s/);
+                    if (checkboxMatch) {
+                        e.preventDefault();
+                        const indent = checkboxMatch[1];
+                        
+                        // If line only has checkbox (empty), remove it
+                        if (currentLine.trim() === '☐' || currentLine.trim() === '☑' || currentLine.trim() === '☒') {
+                            const newText = text.substring(0, cursorPos - currentLine.length) + 
+                                          text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos - currentLine.length;
+                        } else {
+                            const newLine = `\n${indent}☐ `;
+                            const newText = text.substring(0, cursorPos) + newLine + text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos + newLine.length;
+                        }
+                        updateStats();
+                        autoSaveNote();
+                        return;
+                    }
+                    
+                    // Check for numbered lists
+                    const numberMatch = currentLine.match(/^(\s*)(\d+)\.\s/);
+                    if (numberMatch) {
+                        e.preventDefault();
+                        const indent = numberMatch[1];
+                        const number = parseInt(numberMatch[2]);
+                        
+                        // If line only has number (empty), remove it
+                        if (currentLine.trim() === `${number}.`) {
+                            const newText = text.substring(0, cursorPos - currentLine.length) + 
+                                          text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos - currentLine.length;
+                        } else {
+                            const newLine = `\n${indent}${number + 1}. `;
+                            const newText = text.substring(0, cursorPos) + newLine + text.substring(cursorPos);
+                            editor.value = newText;
+                            editor.selectionStart = editor.selectionEnd = cursorPos + newLine.length;
+                        }
+                        updateStats();
+                        autoSaveNote();
+                        return;
+                    }
+                }
+            });
+        }
+
+        function toggleSavedNotes() {
+            const list = document.getElementById('savedNotesList');
+            const toggle = document.getElementById('savedNotesToggle');
+            list.classList.toggle('expanded');
+            toggle.classList.toggle('expanded');
+        }
+
+        function updateSavedNotesList() {
+            const listContainer = document.getElementById('savedNotesList');
+            listContainer.innerHTML = '';
+
+            if (notes.length === 0) {
+                listContainer.innerHTML = '<div style="color: rgba(255,255,255,0.4); font-size: 13px; padding: 12px;">No saved notes yet</div>';
+                return;
+            }
+
+            notes.forEach((note, index) => {
+                const preview = note.content.substring(0, 50) + (note.content.length > 50 ? '...' : '');
+                const noteItem = document.createElement('div');
+                noteItem.className = 'saved-note-item';
+                noteItem.onclick = () => {
+                    switchTab(index);
+                    // Collapse the saved notes section after selecting
+                    const list = document.getElementById('savedNotesList');
+                    const toggle = document.getElementById('savedNotesToggle');
+                    list.classList.remove('expanded');
+                    toggle.classList.remove('expanded');
+                };
+                
+                noteItem.innerHTML = `
+                    <div class="saved-note-info">
+                        <div class="saved-note-name">${note.title}</div>
+                        <div class="saved-note-preview">${preview || 'Empty note'}</div>
+                    </div>
+                `;
+                
+                listContainer.appendChild(noteItem);
+            });
+        }
+
+        function loadNotes() {
+            const saved = localStorage.getItem('notepadTabs');
+            if (saved) {
+                notes = JSON.parse(saved);
+            } else {
+                notes = [{
+                    id: Date.now(),
+                    title: 'Your ideas here',
+                    content: ''
+                }];
+            }
+            renderTabs();
+            loadCurrentNote();
+        }
+
+        function renderTabs() {
+            const tabsContainer = document.querySelector('.notepad-tabs');
+            tabsContainer.innerHTML = '';
+
+            notes.forEach((note, index) => {
+                const tab = document.createElement('div');
+                tab.className = 'notepad-tab' + (index === currentTabIndex ? ' active' : '');
+                tab.setAttribute('data-tab', index);
+                tab.innerHTML = `
+                    <span class="tab-name" onclick="switchTab(${index})" ondblclick="editTabName(${index}, event)">${note.title}</span>
+                    <span class="tab-edit" onclick="editTabName(${index}, event)" title="Rename">✎</span>
+                    ${notes.length > 1 ? `<span class="tab-close" onclick="deleteTab(${index}, event)">×</span>` : ''}
+                `;
+                tabsContainer.appendChild(tab);
+            });
+
+            const addBtn = document.createElement('div');
+            addBtn.className = 'tab-add';
+            addBtn.onclick = addNewTab;
+            addBtn.textContent = '+';
+            addBtn.title = 'New Note';
+            tabsContainer.appendChild(addBtn);
+            
+            // Update saved notes list
+            updateSavedNotesList();
+        }
+
+        function switchTab(index) {
+            saveCurrentNote();
+            currentTabIndex = index;
+            loadCurrentNote();
+            renderTabs();
+        }
+
+        function loadCurrentNote() {
+            const editor = document.getElementById('noteEditor');
+            editor.value = notes[currentTabIndex].content;
+            updateStats();
+        }
+
+        function saveCurrentNote() {
+            const editor = document.getElementById('noteEditor');
+            notes[currentTabIndex].content = editor.value;
+            saveNotes();
+        }
+
+        function saveNotes() {
+            localStorage.setItem('notepadTabs', JSON.stringify(notes));
+        }
+
+        function autoSaveNote() {
+            clearTimeout(window.notepadAutoSave);
+            window.notepadAutoSave = setTimeout(() => {
+                saveCurrentNote();
+                updateSavedNotesList();
+            }, 1000);
+        }
+
+        function addNewTab() {
+            const newNote = {
+                id: Date.now(),
+                title: `Note ${notes.length + 1}`,
+                content: ''
+            };
+            notes.push(newNote);
+            currentTabIndex = notes.length - 1;
+            renderTabs();
+            loadCurrentNote();
+            saveNotes();
+        }
+
+        function deleteTab(index, event) {
+            event.stopPropagation();
+            if (notes.length === 1) return;
+            
+            if (confirm('Delete this note?')) {
+                notes.splice(index, 1);
+                if (currentTabIndex >= notes.length) {
+                    currentTabIndex = notes.length - 1;
+                }
+                renderTabs();
+                loadCurrentNote();
+                saveNotes();
+            }
+        }
+
+        function editTabName(index, event) {
+            event.stopPropagation();
+            const newName = prompt('Enter new note name:', notes[index].title);
+            if (newName && newName.trim()) {
+                notes[index].title = newName.trim();
+                renderTabs();
+                saveNotes();
+                updateSavedNotesList();
+            }
+        }
+
+        function updateStats() {
+            const editor = document.getElementById('noteEditor');
+            const text = editor.value;
+            const words = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+            const chars = text.length;
+            
+            document.getElementById('wordCount').textContent = words;
+            document.getElementById('charCount').textContent = chars;
+        }
+
+        function formatText(format, value) {
+            const editor = document.getElementById('noteEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            let formattedText = '';
+            
+            // Get the text before cursor to check if we're at line start
+            const textBeforeCursor = editor.value.substring(0, start);
+            const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+            const currentLineStart = lastNewlineIndex + 1;
+            const isAtLineStart = start === currentLineStart || textBeforeCursor.substring(currentLineStart).trim() === '';
+
+            switch(format) {
+                case 'bold':
+                    formattedText = `**${selectedText}**`;
+                    break;
+                case 'italic':
+                    formattedText = `*${selectedText}*`;
+                    break;
+                case 'underline':
+                    formattedText = `<u>${selectedText}</u>`;
+                    break;
+                case 'strikethrough':
+                    formattedText = `~~${selectedText}~~`;
+                    break;
+                case 'quote':
+                    // If at line start or whole line selected, format the line(s)
+                    if (start === end) {
+                        // No selection, format current line
+                        const lineStart = currentLineStart;
+                        const lineEnd = editor.value.indexOf('\n', start);
+                        const currentLine = editor.value.substring(lineStart, lineEnd === -1 ? editor.value.length : lineEnd);
+                        
+                        if (currentLine.startsWith('> ')) {
+                            // Remove quote
+                            formattedText = currentLine.substring(2);
+                        } else {
+                            // Add quote
+                            formattedText = '> ' + currentLine;
+                        }
+                        
+                        editor.value = editor.value.substring(0, lineStart) + formattedText + editor.value.substring(lineEnd === -1 ? editor.value.length : lineEnd);
+                        editor.focus();
+                        editor.setSelectionRange(lineStart + formattedText.length, lineStart + formattedText.length);
+                        updateStats();
+                        autoSaveNote();
+                        return;
+                    } else {
+                        // Format each selected line
+                        const lines = selectedText.split('\n');
+                        formattedText = lines.map(line => line.startsWith('> ') ? line : '> ' + line).join('\n');
+                    }
+                    break;
+                case 'bulletList':
+                    formattedText = `• ${selectedText}`;
+                    break;
+                case 'numberList':
+                    formattedText = `1. ${selectedText}`;
+                    break;
+                case 'checklist':
+                    formattedText = `☐ ${selectedText}`;
+                    break;
+                case 'indent':
+                    formattedText = `    ${selectedText}`;
+                    break;
+                case 'outdent':
+                    formattedText = selectedText.replace(/^\s{1,4}/, '');
+                    break;
+            }
+
+            if (formattedText) {
+                editor.value = editor.value.substring(0, start) + formattedText + editor.value.substring(end);
+                editor.focus();
+                editor.setSelectionRange(start, start + formattedText.length);
+                updateStats();
+                autoSaveNote();
+            }
+        }
+
+        function applyHeading(level) {
+            const editor = document.getElementById('noteEditor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            
+            let prefix = '';
+            switch(level) {
+                case 'h1': prefix = '# '; break;
+                case 'h2': prefix = '## '; break;
+                case 'h3': prefix = '### '; break;
+                default: return;
+            }
+            
+            // If no selection, apply to current line
+            if (start === end) {
+                const textBeforeCursor = editor.value.substring(0, start);
+                const lastNewlineIndex = textBeforeCursor.lastIndexOf('\n');
+                const lineStart = lastNewlineIndex + 1;
+                const lineEnd = editor.value.indexOf('\n', start);
+                const currentLine = editor.value.substring(lineStart, lineEnd === -1 ? editor.value.length : lineEnd);
+                
+                // Remove existing heading if present
+                const cleanLine = currentLine.replace(/^#{1,6}\s/, '');
+                const formattedText = prefix + cleanLine;
+                
+                editor.value = editor.value.substring(0, lineStart) + formattedText + editor.value.substring(lineEnd === -1 ? editor.value.length : lineEnd);
+                editor.focus();
+                editor.setSelectionRange(lineStart + formattedText.length, lineStart + formattedText.length);
+            } else {
+                const formattedText = prefix + selectedText;
+                editor.value = editor.value.substring(0, start) + formattedText + editor.value.substring(end);
+                editor.focus();
+                editor.setSelectionRange(start, start + formattedText.length);
+            }
+            
+            updateStats();
+            autoSaveNote();
+        }
+
+        function applyFont(fontFamily) {
+            const editor = document.getElementById('noteEditor');
+            editor.style.fontFamily = fontFamily;
+            
+            // Save font preference
+            localStorage.setItem('notepadFont', fontFamily);
+        }
+
+        function applyFontWeight(weight) {
+            const editor = document.getElementById('noteEditor');
+            editor.style.fontWeight = weight;
+            
+            // Save font weight preference
+            localStorage.setItem('notepadFontWeight', weight);
+        }
+
+        function loadFontPreferences() {
+            const editor = document.getElementById('noteEditor');
+            const savedFont = localStorage.getItem('notepadFont');
+            const savedWeight = localStorage.getItem('notepadFontWeight');
+            
+            if (savedFont) {
+                editor.style.fontFamily = savedFont;
+                const fontSelect = document.getElementById('fontSelect');
+                if (fontSelect) fontSelect.value = savedFont;
+            }
+            
+            if (savedWeight) {
+                editor.style.fontWeight = savedWeight;
+                const weightSelect = document.getElementById('fontWeightSelect');
+                if (weightSelect) weightSelect.value = savedWeight;
+            }
+        }
+
+        function insertFormula() {
+            const editor = document.getElementById('noteEditor');
+            const formula = prompt('Enter formula:');
+            if (formula) {
+                const start = editor.selectionStart;
+                editor.value = editor.value.substring(0, start) + `$${formula}$` + editor.value.substring(start);
+                editor.focus();
+                updateStats();
+                autoSaveNote();
+            }
+        }
+
+        function downloadCurrentNote() {
+            const currentNote = notes[currentTabIndex];
+            const text = currentNote.content;
+            const blob = new Blob([text], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${currentNote.title.replace(/[^a-z0-9]/gi, '_')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            try { window.parent.postMessage({ type: 'notepadAction', action: 'download' }, '*'); } catch(e) { }
+        }
+
+        function resetCurrentNote() {
+            if (confirm('Are you sure you want to reset this note? This will clear all content.')) {
+                const editor = document.getElementById('noteEditor');
+                editor.value = '';
+                notes[currentTabIndex].content = '';
+                saveNotes();
+                updateStats();
+                try { window.parent.postMessage({ type: 'notepadAction', action: 'reset' }, '*'); } catch(e) { }
+            }
+        }
+
+        function saveNote() {
+            saveCurrentNote();
+            // Send message to parent window
+            try { window.parent.postMessage({ type: 'notepadSave', success: true }, '*'); } catch(e) { }
+        }
+
+        function closePanel() {
+            // Send message to parent window to close the panel
+            try { window.parent.postMessage({ type: 'closeNotepad' }, '*'); } catch(e) { }
+        }
+
+        // Handle checkbox functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const editor = document.getElementById('noteEditor');
+            
+            // Enhanced checkbox clicking
+            editor.addEventListener('click', function(e) {
+                const lines = editor.value.split('\n');
+                const cursorPos = editor.selectionStart;
+                let currentPos = 0;
+                let clickedLine = -1;
+
+                for (let i = 0; i < lines.length; i++) {
+                    const lineLength = lines[i].length + 1; // +1 for newline
+                    if (cursorPos >= currentPos && cursorPos < currentPos + lineLength) {
+                        clickedLine = i;
+                        break;
+                    }
+                    currentPos += lineLength;
+                }
+
+                if (clickedLine !== -1) {
+                    const line = lines[clickedLine];
+                    const checkboxPos = line.search(/[☐☑☒]/);
+                    
+                    // Only toggle if clicked near the checkbox (within first 10 characters)
+                    const clickPosInLine = cursorPos - currentPos + clickedLine;
+                    if (checkboxPos !== -1 && clickPosInLine <= checkboxPos + 5) {
+                        // Cycle through checkbox states: ☐ → ☑ → ☐
+                        if (line.includes('☐')) {
+                            lines[clickedLine] = line.replace('☐', '☑');
+                        } else if (line.includes('☑')) {
+                            lines[clickedLine] = line.replace('☑', '☐');
+                        } else if (line.includes('☒')) {
+                            lines[clickedLine] = line.replace('☒', '☐');
+                        }
+                        
+                        const newText = lines.join('\n');
+                        const cursorOffset = newText.length - editor.value.length;
+                        editor.value = newText;
+                        editor.selectionStart = editor.selectionEnd = cursorPos + cursorOffset;
+                        updateStats();
+                        autoSaveNote();
+                    }
+                }
+            });
+
+            // Keyboard shortcut to toggle checkbox on current line (Alt + X)
+            editor.addEventListener('keydown', function(e) {
+                if (e.altKey && e.key === 'x') {
+                    e.preventDefault();
+                    const cursorPos = editor.selectionStart;
+                    const lines = editor.value.split('\n');
+                    let currentPos = 0;
+                    let currentLineIndex = -1;
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const lineLength = lines[i].length + 1;
+                        if (cursorPos >= currentPos && cursorPos < currentPos + lineLength) {
+                            currentLineIndex = i;
+                            break;
+                        }
+                        currentPos += lineLength;
+                    }
+
+                    if (currentLineIndex !== -1) {
+                        const line = lines[currentLineIndex];
+                        if (line.includes('☐')) {
+                            lines[currentLineIndex] = line.replace('☐', '☑');
+                        } else if (line.includes('☑')) {
+                            lines[currentLineIndex] = line.replace('☑', '☐');
+                        } else if (line.includes('☒')) {
+                            lines[currentLineIndex] = line.replace('☒', '☐');
+                        } else {
+                            // Add checkbox if line doesn't have one
+                            lines[currentLineIndex] = '☐ ' + line;
+                        }
+                        
+                        editor.value = lines.join('\n');
+                        editor.selectionStart = editor.selectionEnd = cursorPos;
+                        updateStats();
+                        autoSaveNote();
+                    }
+                }
+            });
+        });
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

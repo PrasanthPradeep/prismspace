@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Editor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 0.75rem 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.1rem;
+            color: #00ff88;
+        }
+        .header-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .header button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: opacity 0.3s;
+        }
+        .header button:hover {
+            opacity: 0.8;
+        }
+        .header button.close {
+            background: #ff4444;
+            color: white;
+        }
+        .toolbar {
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .toolbar button {
+            background: #1a1f3a;
+            color: #00ff88;
+            border: 1px solid #333;
+            padding: 0.4rem 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .toolbar button:hover {
+            background: #00ff88;
+            color: #000;
+        }
+        .editor-container {
+            flex: 1;
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            overflow: hidden;
+        }
+        .pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0a0e27;
+            border: 1px solid #333;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .pane-header {
+            background: #1a1f3a;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #333;
+            font-size: 0.9rem;
+            color: #00ff88;
+            font-weight: bold;
+        }
+        .pane-content {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+        textarea {
+            width: 100%;
+            height: 100%;
+            background: #0a0e27;
+            color: #e0e0e0;
+            border: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            resize: none;
+            line-height: 1.5;
+        }
+        textarea:focus {
+            outline: none;
+        }
+        .preview {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+        }
+        .preview h1, .preview h2, .preview h3, .preview h4, .preview h5, .preview h6 {
+            color: #00ff88;
+            margin: 1rem 0 0.5rem 0;
+            font-weight: bold;
+        }
+        .preview h1 { font-size: 2em; }
+        .preview h2 { font-size: 1.75em; }
+        .preview h3 { font-size: 1.5em; }
+        .preview h4 { font-size: 1.25em; }
+        .preview h5 { font-size: 1.1em; }
+        .preview h6 { font-size: 1em; }
+        .preview p {
+            margin-bottom: 1rem;
+        }
+        .preview strong {
+            color: #ffaa00;
+            font-weight: bold;
+        }
+        .preview em {
+            color: #88ccff;
+            font-style: italic;
+        }
+        .preview code {
+            background: #1a1f3a;
+            color: #00ff88;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+        }
+        .preview pre {
+            background: #1a1f3a;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            border-left: 3px solid #00ff88;
+        }
+        .preview pre code {
+            background: none;
+            color: #e0e0e0;
+            padding: 0;
+        }
+        .preview blockquote {
+            border-left: 4px solid #00ff88;
+            padding-left: 1rem;
+            margin: 1rem 0;
+            color: #888;
+            font-style: italic;
+        }
+        .preview ul, .preview ol {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        .preview li {
+            margin-bottom: 0.5rem;
+        }
+        .preview a {
+            color: #44ff44;
+            text-decoration: none;
+            border-bottom: 1px dotted #44ff44;
+        }
+        .preview a:hover {
+            background: rgba(68, 255, 68, 0.1);
+        }
+        .preview img {
+            max-width: 100%;
+            height: auto;
+            margin: 1rem 0;
+            border-radius: 4px;
+        }
+        .preview table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 1rem 0;
+        }
+        .preview table td,
+        .preview table th {
+            border: 1px solid #333;
+            padding: 0.75rem;
+            text-align: left;
+        }
+        .preview table th {
+            background: #1a1f3a;
+            color: #00ff88;
+        }
+        .footer {
+            background: #1a1f3a;
+            border-top: 1px solid #333;
+            padding: 0.5rem 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .status-indicator {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        .status-dot.saved {
+            background: #00ff88;
+        }
+        .distraction-mode .toolbar,
+        .distraction-mode .footer,
+        .distraction-mode .pane-header {
+            display: none;
+        }
+        .distraction-mode .pane {
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="container">
+        <div class="header">
+            <h1>📝 Markdown Editor</h1>
+            <div class="header-buttons">
+                <button onclick="toggleDistractionMode()">Focus Mode</button>
+                <button class="close" onclick="try { parent.postMessage({action: 'closeMarkdownEditor'}, '*'); } catch(e) { window.close(); }">Close</button>
+            </div>
+        </div>
+
+        <div class="toolbar">
+            <button onclick="insertMarkdown('**bold**', '**', '**')">Bold</button>
+            <button onclick="insertMarkdown('*italic*', '*', '*')">Italic</button>
+            <button onclick="insertMarkdown('`code`', '`', '`')">Code</button>
+            <button onclick="insertMarkdown('[link](url)', '[', '](url)')">Link</button>
+            <button onclick="insertMarkdown('![alt](image.jpg)', '![', '](image.jpg)')">Image</button>
+            <button onclick="insertMarkdown('# Heading', '', '')">H1</button>
+            <button onclick="insertMarkdown('## Heading', '', '')">H2</button>
+            <button onclick="insertMarkdown('> Quote', '', '')">Quote</button>
+            <button onclick="insertTable()">Table</button>
+            <button onclick="exportMarkdown()">Export</button>
+            |
+            <button onclick="copyAsHTML()">Copy HTML</button>
+            <button onclick="downloadMD()">Download .md</button>
+            <button onclick="downloadHTML()">Download .html</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="pane">
+                <div class="pane-header">Raw Markdown</div>
+                <div class="pane-content">
+                    <textarea id="editor" placeholder="# Write your markdown here...&#10;&#10;Start typing to see live preview on the right."></textarea>
+                </div>
+            </div>
+
+            <div class="pane">
+                <div class="pane-header">Preview</div>
+                <div class="pane-content preview" id="preview"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div id="stats">Words: 0 | Chars: 0 | Reading time: 0 min</div>
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <div id="statusText">Unsaved</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const editor = document.getElementById('editor');
+        const preview = document.getElementById('preview');
+        const statusDot = document.getElementById('statusDot');
+        const statsDiv = document.getElementById('stats');
+        let autoSaveTimer;
+        let unsavedChanges = false;
+
+        // Load from localStorage
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('markdown-editor');
+            if (saved) {
+                editor.value = saved;
+                renderPreview();
+                updateStats();
+            }
+        });
+
+        // Event listeners
+        editor.addEventListener('input', () => {
+            renderPreview();
+            updateStats();
+            markUnsaved();
+        });
+
+        editor.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                insertText('\t');
+            }
+        });
+
+        function renderPreview() {
+            preview.innerHTML = markdownToHtml(editor.value);
+        }
+
+        function markdownToHtml(md) {
+            let html = md;
+
+            // Escape HTML
+            html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+            // Code blocks
+            html = html.replace(/```([^`]+)```/gm, '<pre><code>$1</code></pre>');
+
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Headers
+            html = html.replace(/^### (.*?)$/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*?)$/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*?)$/gm, '<h1>$1</h1>');
+
+            // Bold
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+
+            // Italic
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+
+            // Images
+            html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">');
+
+            // Blockquotes
+            html = html.replace(/^> (.*?)$/gm, '<blockquote>$1</blockquote>');
+
+            // Lists
+            html = html.replace(/^- (.*?)$/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+            html = html.replace(/^(\d+)\. (.*?)$/gm, '<li>$2</li>');
+
+            // Tables (simple)
+            html = html.replace(/\|(.+)\|/g, (match) => {
+                const cells = match.split('|').filter(c => c);
+                return '<tr><td>' + cells.join('</td><td>') + '</td></tr>';
+            });
+
+            // Paragraphs
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>(<h[1-6])/g, '$1');
+            html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
+            html = html.replace(/<p>(<pre)/g, '$1');
+            html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+
+            return html;
+        }
+
+        function updateStats() {
+            const text = editor.value;
+            const words = text.trim().split(/\s+/).filter(w => w).length;
+            const chars = text.length;
+            const readingTime = Math.ceil(words / 200);
+            statsDiv.textContent = `Words: ${words} | Chars: ${chars} | Reading time: ${readingTime} min`;
+        }
+
+        function markUnsaved() {
+            unsavedChanges = true;
+            statusDot.classList.remove('saved');
+            document.getElementById('statusText').textContent = 'Unsaved';
+
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(() => {
+                localStorage.setItem('markdown-editor', editor.value);
+                statusDot.classList.add('saved');
+                document.getElementById('statusText').textContent = 'Saved';
+                unsavedChanges = false;
+            }, 2000);
+        }
+
+        function insertMarkdown(text, before, after) {
+            insertText(before + text + after);
+        }
+
+        function insertText(text) {
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selected = editor.value.substring(start, end);
+            editor.value = editor.value.substring(0, start) + text + selected + editor.value.substring(end);
+            editor.selectionStart = start + text.length;
+            editor.selectionEnd = start + text.length;
+            editor.focus();
+
+            renderPreview();
+            updateStats();
+            markUnsaved();
+        }
+
+        function insertTable() {
+            const table = '| Header 1 | Header 2 |\n|----------|----------|\n| Cell 1   | Cell 2   |';
+            insertText(table);
+        }
+
+        function copyAsHTML() {
+            const html = preview.innerHTML;
+            navigator.clipboard.writeText(html);
+            alert('✓ HTML copied to clipboard!');
+        }
+
+        function downloadMD() {
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/markdown;charset=utf-8,' + encodeURIComponent(editor.value));
+            element.setAttribute('download', 'document.md');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function downloadHTML() {
+            const html = `<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Export</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 800px; margin: 0 auto; padding: 2rem; line-height: 1.6; }
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; }
+        pre { background: #f0f0f0; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+        blockquote { border-left: 4px solid #ddd; padding-left: 1rem; margin: 1rem 0; color: #666; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 0.75rem; text-align: left; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+${preview.innerHTML}
+</body>
+</html>`;
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/html;charset=utf-8,' + encodeURIComponent(html));
+            element.setAttribute('download', 'document.html');
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+
+        function exportMarkdown() {
+            alert('Choose:\n1. Copy HTML (toolbar)\n2. Download .md (toolbar)\n3. Download .html (toolbar)');
+        }
+
+        function toggleDistractionMode() {
+            document.getElementById('container').classList.toggle('distraction-mode');
+        }
+
+        // Initial render
+        renderPreview();
+        updateStats();
+    </script>
+</body>
+</html>

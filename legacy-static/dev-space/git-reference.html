@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Command Reference</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #0a0e27;
+            color: #e0e0e0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .header {
+            padding: 1rem;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.2rem;
+            color: #00ff88;
+        }
+        .header button {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tabs {
+            display: flex;
+            background: #1a1f3a;
+            border-bottom: 1px solid #333;
+            padding: 0 1rem;
+            overflow-x: auto;
+        }
+        .tab-btn {
+            padding: 0.75rem 1rem;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+        .tab-btn.active {
+            color: #00ff88;
+            border-bottom-color: #00ff88;
+        }
+        .tab-btn:hover {
+            color: #00ff88;
+        }
+        .content {
+            flex: 1;
+            overflow: auto;
+            padding: 1.5rem;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
+        .command-card {
+            background: #1a1f3a;
+            border: 1px solid #333;
+            border-radius: 4px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .command-card:hover {
+            border-color: #00ff88;
+            background: #252e45;
+        }
+        .command-name {
+            color: #00ff88;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .command-syntax {
+            background: #0a0e27;
+            padding: 0.75rem;
+            border-left: 3px solid #00ff88;
+            margin: 0.5rem 0;
+            border-radius: 2px;
+            word-break: break-all;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .command-syntax:hover {
+            background: rgba(0, 255, 136, 0.1);
+        }
+        .command-desc {
+            color: #888;
+            margin: 0.5rem 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+        .danger-badge {
+            display: inline-block;
+            background: #ff4444;
+            color: white;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .careful-badge {
+            display: inline-block;
+            background: #ffaa00;
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .safe-badge {
+            display: inline-block;
+            background: #00ff88;
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 3px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-top: 0.5rem;
+        }
+        .section-title {
+            color: #00ff88;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 1.5rem 0 1rem 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 0.5rem;
+        }
+        select, input {
+            background: #1a1f3a;
+            color: #e0e0e0;
+            border: 1px solid #333;
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+        button {
+            background: #00ff88;
+            color: #000;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: bold;
+            transition: opacity 0.3s;
+            font-size: 0.9rem;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .builder-section {
+            background: #1a1f3a;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            border-left: 3px solid #00ff88;
+        }
+        .builder-label {
+            color: #00ff88;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+        .output-box {
+            background: #0a0e27;
+            border: 1px solid #333;
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            word-break: break-all;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .scenario-item {
+            background: #1a1f3a;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+        .scenario-item:hover {
+            background: #252e45;
+            border-color: #00ff88;
+        }
+        .scenario-item strong {
+            color: #00ff88;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐙 Git Command Reference</h1>
+            <button onclick="try { parent.postMessage({action: 'closeGitReference'}, '*'); } catch(e) { window.close(); }">Close</button>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'cheatsheet')">Cheat Sheet</button>
+            <button class="tab-btn" onclick="switchTab(event, 'builder')">Builder</button>
+            <button class="tab-btn" onclick="switchTab(event, 'scenarios')">Scenarios</button>
+        </div>
+
+        <div class="content">
+            <!-- Cheat Sheet Tab -->
+            <div id="cheatsheet" class="tab-pane active">
+                <div id="cheatsheetContent"></div>
+            </div>
+
+            <!-- Builder Tab -->
+            <div id="builder" class="tab-pane">
+                <div class="section-title">Git Command Builder</div>
+                
+                <div class="builder-section">
+                    <label class="builder-label">Command Category</label>
+                    <select onchange="updateBuilderOptions()">
+                        <option value="log">Git Log</option>
+                        <option value="commit">Git Commit</option>
+                        <option value="branch">Git Branch</option>
+                        <option value="push">Git Push</option>
+                    </select>
+                </div>
+
+                <div id="builderOptions"></div>
+
+                <div class="output-box" id="builtCommand">git log</div>
+                <button onclick="copyBuiltCommand()">Copy Command</button>
+            </div>
+
+            <!-- Scenarios Tab -->
+            <div id="scenarios" class="tab-pane">
+                <div id="scenariosContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const commands = {
+            init: {
+                category: 'Initialization',
+                items: [
+                    {
+                        name: 'git init',
+                        syntax: 'git init',
+                        description: 'Initialize a new git repository',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git clone',
+                        syntax: 'git clone <repository-url>',
+                        description: 'Clone an existing repository',
+                        danger: 'safe'
+                    }
+                ]
+            },
+            staging: {
+                category: 'Staging & Commits',
+                items: [
+                    {
+                        name: 'git add',
+                        syntax: 'git add <file>\ngit add . # Add all files',
+                        description: 'Stage changes for commit',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git commit',
+                        syntax: 'git commit -m "message"\ngit commit --amend # Modify last commit',
+                        description: 'Create a commit with staged changes',
+                        danger: 'careful'
+                    },
+                    {
+                        name: 'git status',
+                        syntax: 'git status',
+                        description: 'View status of working directory',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git diff',
+                        syntax: 'git diff\ngit diff --staged',
+                        description: 'View changes between commits/branches',
+                        danger: 'safe'
+                    }
+                ]
+            },
+            branching: {
+                category: 'Branching',
+                items: [
+                    {
+                        name: 'git branch',
+                        syntax: 'git branch <branch-name>\ngit branch -a # List all branches',
+                        description: 'Create or list branches',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git checkout',
+                        syntax: 'git checkout <branch-name>\ngit checkout -b <branch-name> # Create & switch',
+                        description: 'Switch branches or restore files',
+                        danger: 'careful'
+                    },
+                    {
+                        name: 'git switch',
+                        syntax: 'git switch <branch-name>\ngit switch -c <branch-name> # New branch',
+                        description: 'Modern way to switch branches',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git merge',
+                        syntax: 'git merge <branch-name>',
+                        description: 'Merge another branch into current',
+                        danger: 'careful'
+                    },
+                    {
+                        name: 'git branch -d',
+                        syntax: 'git branch -d <branch-name>\ngit branch -D <branch-name> # Force delete',
+                        description: 'Delete a branch',
+                        danger: 'careful'
+                    }
+                ]
+            },
+            remotes: {
+                category: 'Remotes',
+                items: [
+                    {
+                        name: 'git remote',
+                        syntax: 'git remote -v # List all remotes\ngit remote add <name> <url>',
+                        description: 'Manage remote repositories',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git push',
+                        syntax: 'git push <remote> <branch>\ngit push --all # Push all branches',
+                        description: 'Push commits to remote',
+                        danger: 'careful'
+                    },
+                    {
+                        name: 'git pull',
+                        syntax: 'git pull <remote> <branch>',
+                        description: 'Fetch and merge from remote',
+                        danger: 'careful'
+                    },
+                    {
+                        name: 'git fetch',
+                        syntax: 'git fetch <remote>\ngit fetch --all',
+                        description: 'Fetch updates from remote without merging',
+                        danger: 'safe'
+                    }
+                ]
+            },
+            undoing: {
+                category: 'Undoing Changes',
+                items: [
+                    {
+                        name: 'git restore',
+                        syntax: 'git restore <file> # Discard changes\ngit restore --staged <file>',
+                        description: 'Discard changes in working directory',
+                        danger: 'destructive'
+                    },
+                    {
+                        name: 'git reset',
+                        syntax: 'git reset HEAD~1 # Undo last commit\ngit reset --hard # Reset to HEAD',
+                        description: 'Reset HEAD to a previous state',
+                        danger: 'destructive'
+                    },
+                    {
+                        name: 'git revert',
+                        syntax: 'git revert <commit-hash>',
+                        description: 'Create new commit that undoes changes',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git clean',
+                        syntax: 'git clean -fd # Remove untracked files\ngit clean -fdx # Include ignored files',
+                        description: 'Remove untracked files',
+                        danger: 'destructive'
+                    }
+                ]
+            },
+            rebasing: {
+                category: 'Rebasing',
+                items: [
+                    {
+                        name: 'git rebase',
+                        syntax: 'git rebase <branch>\ngit rebase -i HEAD~3 # Interactive rebase',
+                        description: 'Reapply commits on top of another branch',
+                        danger: 'destructive'
+                    },
+                    {
+                        name: 'git rebase --continue',
+                        syntax: 'git rebase --continue\ngit rebase --abort',
+                        description: 'Continue or abort rebase',
+                        danger: 'careful'
+                    }
+                ]
+            },
+            stashing: {
+                category: 'Stashing',
+                items: [
+                    {
+                        name: 'git stash',
+                        syntax: 'git stash\ngit stash list # View stashes',
+                        description: 'Temporarily save uncommitted changes',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git stash apply',
+                        syntax: 'git stash apply\ngit stash pop # Apply and remove',
+                        description: 'Restore stashed changes',
+                        danger: 'safe'
+                    }
+                ]
+            },
+            viewing: {
+                category: 'Viewing History',
+                items: [
+                    {
+                        name: 'git log',
+                        syntax: 'git log\ngit log --oneline --graph --all',
+                        description: 'View commit history',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git show',
+                        syntax: 'git show <commit-hash>\ngit show <branch-name>',
+                        description: 'Show commit details',
+                        danger: 'safe'
+                    },
+                    {
+                        name: 'git blame',
+                        syntax: 'git blame <file>',
+                        description: 'View who changed each line',
+                        danger: 'safe'
+                    }
+                ]
+            }
+        };
+
+        const scenarios = [
+            {
+                problem: '❌ I committed to the wrong branch',
+                solution: 'git reset HEAD~1 # Undo last commit\ngit checkout <correct-branch>\ngit commit -m "fixed message"'
+            },
+            {
+                problem: '❌ I need to undo the last commit',
+                solution: 'git reset HEAD~1 # Keep changes\ngit reset --hard HEAD~1 # Discard changes'
+            },
+            {
+                problem: '❌ I want to squash commits',
+                solution: 'git rebase -i HEAD~3 # Interactive rebase last 3 commits\n# Mark commits as "squash" or "s"'
+            },
+            {
+                problem: '❌ I accidentally deleted a branch',
+                solution: 'git reflog # Find the commit hash\ngit checkout -b <branch-name> <commit-hash>'
+            },
+            {
+                problem: '❌ I have uncommitted changes on wrong branch',
+                solution: 'git stash # Save changes\ngit checkout <correct-branch>\ngit stash pop # Restore'
+            },
+            {
+                problem: '❌ I need to discard all local changes',
+                solution: 'git reset --hard origin/<branch-name>'
+            },
+            {
+                problem: '❌ I need to change a commit message',
+                solution: 'git commit --amend -m "new message"\ngit push --force-with-lease'
+            },
+            {
+                problem: '❌ How do I rebase my PR to latest main',
+                solution: 'git fetch origin\ngit rebase origin/main\ngit push --force-with-lease'
+            }
+        ];
+
+        function switchTab(e, tabName) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+
+            if (tabName === 'cheatsheet') populateCheatsheet();
+            if (tabName === 'scenarios') populateScenarios();
+        }
+
+        function getBadge(danger) {
+            const badges = {
+                'safe': '<span class="safe-badge">✓ Safe</span>',
+                'careful': '<span class="careful-badge">⚠ Careful</span>',
+                'destructive': '<span class="danger-badge">🔴 Destructive</span>'
+            };
+            return badges[danger] || '';
+        }
+
+        function populateCheatsheet() {
+            let html = '';
+            for (const [key, data] of Object.entries(commands)) {
+                html += `<div class="section-title">${data.category}</div>`;
+                data.items.forEach(cmd => {
+                    html += `
+                        <div class="command-card">
+                            <div class="command-name">${cmd.name}</div>
+                            <div class="command-syntax" onclick="copyCommand(this)">${cmd.syntax.replace(/\n/g, '<br>')}</div>
+                            <div class="command-desc">${cmd.description}</div>
+                            ${getBadge(cmd.danger)}
+                        </div>
+                    `;
+                });
+            }
+            document.getElementById('cheatsheetContent').innerHTML = html;
+        }
+
+        function populateScenarios() {
+            let html = '<div class="section-title">Common Git Scenarios</div>';
+            scenarios.forEach((s, idx) => {
+                html += `
+                    <div class="scenario-item" onclick="toggleScenario(${idx})">
+                        <strong>${s.problem}</strong>
+                        <div class="scenario-solution" id="scenario-${idx}" style="display:none; margin-top: 0.75rem; background: #0a0e27; padding: 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.85rem;">
+                            <code style="white-space: pre-wrap; word-break: break-word;">${s.solution.replace(/\n/g, '<br>')}</code>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('scenariosContent').innerHTML = html;
+        }
+
+        function toggleScenario(idx) {
+            const el = document.getElementById(`scenario-${idx}`);
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function copyCommand(el) {
+            const text = el.textContent;
+            navigator.clipboard.writeText(text);
+            const orig = el.textContent;
+            el.textContent = '✓ Copied!';
+            setTimeout(() => el.textContent = orig, 1500);
+        }
+
+        function updateBuilderOptions() {
+            const builderOptions = document.getElementById('builderOptions');
+            builderOptions.innerHTML = '<button onclick="buildCommand()">Build Command</button>';
+        }
+
+        function buildCommand() {
+            document.getElementById('builtCommand').textContent = 'git log --oneline --graph --all --decorate';
+        }
+
+        function copyBuiltCommand() {
+            const cmd = document.getElementById('builtCommand').textContent;
+            navigator.clipboard.writeText(cmd);
+            alert('✓ Copied: ' + cmd);
+        }
+
+        // Initial load
+        populateCheatsheet();
+    </script>
+</body>
+</html>

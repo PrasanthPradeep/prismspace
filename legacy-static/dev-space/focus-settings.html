@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Timer</title>
+    <style>
+        :root {
+            --bg: #090b0f;
+            --panel: rgba(18, 23, 30, 0.94);
+            --border: #25303b;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            color: var(--text);
+            background: radial-gradient(circle at top, #17303f 0%, var(--bg) 38%);
+        }
+        .app {
+            min-height: 100vh;
+            padding: 24px;
+            display: grid;
+            gap: 20px;
+        }
+        .shell {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 20px;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px;
+        }
+        h1, h2, h3, p { margin: 0; }
+        .hero {
+            display: grid;
+            place-items: center;
+            text-align: center;
+            gap: 18px;
+            min-height: 520px;
+        }
+        .phase {
+            font-size: 15px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .ring {
+            width: 320px;
+            height: 320px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background:
+                radial-gradient(circle at center, #0d1218 60%, transparent 61%),
+                conic-gradient(var(--accent) calc(var(--progress, 0) * 1%), rgba(255,255,255,0.08) 0);
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05), 0 20px 40px rgba(0,0,0,0.28);
+            position: relative;
+        }
+        .ring::after {
+            content: "";
+            position: absolute;
+            inset: 18px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .time {
+            font-size: clamp(64px, 12vw, 92px);
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            line-height: 1;
+        }
+        .task {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 280px;
+            text-wrap: balance;
+        }
+        .controls, .row, .stats-grid {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .controls { justify-content: center; }
+        button, input {
+            font: inherit;
+            color: inherit;
+            background: #0e141a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+        }
+        button { cursor: pointer; }
+        .primary { background: rgba(34, 197, 94, 0.16); border-color: rgba(34, 197, 94, 0.46); }
+        .dots { display: flex; gap: 8px; justify-content: center; }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.06);
+        }
+        .dot.done { background: var(--accent); border-color: rgba(34,197,94,0.5); }
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-top: 18px;
+        }
+        label { display: grid; gap: 6px; font-size: 13px; color: var(--muted); }
+        input[type="number"], input[type="text"] { width: 100%; }
+        .stats-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .stat {
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: rgba(255,255,255,0.03);
+        }
+        .stat strong { display: block; font-size: 28px; margin-top: 8px; }
+        .minimal .settings-panel,
+        .minimal .stats-panel,
+        .minimal .header-row,
+        .minimal .task-input-wrap {
+            display: none !important;
+        }
+        .minimal .shell {
+            grid-template-columns: 1fr;
+        }
+        .minimal .hero {
+            min-height: calc(100vh - 48px);
+        }
+        @media (max-width: 980px) {
+            .shell { grid-template-columns: 1fr; }
+            .ring { width: 260px; height: 260px; }
+            .settings-grid, .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <div class="header-row row" style="justify-content:space-between;">
+            <div>
+                <h1>Focus Timer</h1>
+                <p style="color:var(--muted); margin-top:6px;">Pomodoro timer with daily stats, generated bell tones, and minimal mode.</p>
+            </div>
+            <div class="row">
+                <button id="minimalBtn">Minimal mode</button>
+                <button id="fullscreenBtn">Fullscreen</button>
+            </div>
+        </div>
+
+        <div class="shell">
+            <section class="panel hero-panel">
+                <div class="hero">
+                    <div class="phase" id="phaseLabel">Focus</div>
+                    <div class="ring" id="ring">
+                        <div>
+                            <div class="time" id="timeDisplay">25:00</div>
+                            <div class="task" id="taskDisplay">No task set</div>
+                        </div>
+                    </div>
+                    <div class="task-input-wrap row" style="justify-content:center;">
+                        <input id="taskInput" type="text" placeholder="What are you working on?" style="min-width:280px;">
+                    </div>
+                    <div class="dots" id="sessionDots"></div>
+                    <div class="controls">
+                        <button id="startPauseBtn" class="primary">Start</button>
+                        <button id="resetBtn">Reset</button>
+                        <button id="skipBtn">Skip</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel settings-panel">
+                <h2>Timer Settings</h2>
+                <div class="settings-grid">
+                    <label>Focus minutes<input id="focusMinutes" type="number" min="1" max="180"></label>
+                    <label>Short break<input id="shortBreakMinutes" type="number" min="1" max="60"></label>
+                    <label>Long break<input id="longBreakMinutes" type="number" min="1" max="120"></label>
+                    <label>Sessions before long break<input id="sessionsBeforeLongBreak" type="number" min="2" max="12"></label>
+                </div>
+                <p style="margin-top:12px; color:var(--muted); font-size:13px;">Changes apply instantly and persist in localStorage.</p>
+            </section>
+        </div>
+
+        <section class="panel stats-panel">
+            <h2>Daily Stats</h2>
+            <div class="stats-grid" style="margin-top:14px;">
+                <div class="stat">
+                    Sessions completed today
+                    <strong id="sessionsToday">0</strong>
+                </div>
+                <div class="stat">
+                    Focus time today
+                    <strong id="focusTimeToday">0m</strong>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "prism.focusTimer.v2";
+        const todayKey = new Date().toISOString().slice(0, 10);
+        const defaults = {
+            focusMinutes: 25,
+            shortBreakMinutes: 5,
+            longBreakMinutes: 15,
+            sessionsBeforeLongBreak: 4,
+            currentPhase: "focus",
+            timeLeft: 25 * 60,
+            running: false,
+            completedFocusSessionsInCycle: 0,
+            taskLabel: "",
+            stats: { date: todayKey, sessions: 0, focusSeconds: 0 }
+        };
+
+        let state = loadState();
+        let timerId = null;
+        let audioContext = null;
+        const phaseNames = { focus: "Focus", shortBreak: "Short break", longBreak: "Long break" };
+
+        const timeDisplay = document.getElementById("timeDisplay");
+        const phaseLabel = document.getElementById("phaseLabel");
+        const taskDisplay = document.getElementById("taskDisplay");
+        const taskInput = document.getElementById("taskInput");
+        const ring = document.getElementById("ring");
+        const sessionDots = document.getElementById("sessionDots");
+        const sessionsToday = document.getElementById("sessionsToday");
+        const focusTimeToday = document.getElementById("focusTimeToday");
+
+        function loadState() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (saved) {
+                    const merged = { ...defaults, ...saved };
+                    if (!merged.stats || merged.stats.date !== todayKey) {
+                        merged.stats = { date: todayKey, sessions: 0, focusSeconds: 0 };
+                    }
+                    return merged;
+                }
+            } catch {}
+            return { ...defaults };
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function phaseDuration(phase = state.currentPhase) {
+            if (phase === "focus") return state.focusMinutes * 60;
+            if (phase === "shortBreak") return state.shortBreakMinutes * 60;
+            return state.longBreakMinutes * 60;
+        }
+
+        function formatTime(seconds) {
+            const minutes = String(Math.floor(seconds / 60)).padStart(2, "0");
+            const secs = String(seconds % 60).padStart(2, "0");
+            return minutes + ":" + secs;
+        }
+
+        function renderDots() {
+            sessionDots.innerHTML = "";
+            for (let i = 0; i < state.sessionsBeforeLongBreak; i += 1) {
+                const dot = document.createElement("div");
+                dot.className = "dot" + (i < state.completedFocusSessionsInCycle ? " done" : "");
+                sessionDots.appendChild(dot);
+            }
+        }
+
+        function render() {
+            phaseLabel.textContent = phaseNames[state.currentPhase];
+            timeDisplay.textContent = formatTime(state.timeLeft);
+            taskDisplay.textContent = state.taskLabel.trim() || "No task set";
+            taskInput.value = state.taskLabel;
+            document.getElementById("startPauseBtn").textContent = state.running ? "Pause" : "Start";
+            const duration = phaseDuration();
+            const progress = duration ? ((duration - state.timeLeft) / duration) * 100 : 0;
+            ring.style.setProperty("--progress", progress.toFixed(2));
+            renderDots();
+            sessionsToday.textContent = state.stats.sessions;
+            focusTimeToday.textContent = Math.round(state.stats.focusSeconds / 60) + "m";
+
+            document.getElementById("focusMinutes").value = state.focusMinutes;
+            document.getElementById("shortBreakMinutes").value = state.shortBreakMinutes;
+            document.getElementById("longBreakMinutes").value = state.longBreakMinutes;
+            document.getElementById("sessionsBeforeLongBreak").value = state.sessionsBeforeLongBreak;
+        }
+
+        function bellTone() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const now = audioContext.currentTime;
+            const gain = audioContext.createGain();
+            gain.connect(audioContext.destination);
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+
+            [783.99, 1046.5].forEach((frequency, index) => {
+                const osc = audioContext.createOscillator();
+                osc.type = "sine";
+                osc.frequency.setValueAtTime(frequency, now);
+                osc.connect(gain);
+                osc.start(now + index * 0.12);
+                osc.stop(now + 1.5);
+            });
+        }
+
+        function nextPhase() {
+            if (state.currentPhase === "focus") {
+                state.completedFocusSessionsInCycle += 1;
+                state.stats.sessions += 1;
+                const isLongBreak = state.completedFocusSessionsInCycle % state.sessionsBeforeLongBreak === 0;
+                state.currentPhase = isLongBreak ? "longBreak" : "shortBreak";
+            } else {
+                state.currentPhase = "focus";
+            }
+            state.timeLeft = phaseDuration(state.currentPhase);
+            bellTone();
+            saveState();
+            render();
+        }
+
+        function startTimer() {
+            if (timerId) return;
+            state.running = true;
+            timerId = setInterval(() => {
+                state.timeLeft -= 1;
+                if (state.currentPhase === "focus") {
+                    state.stats.focusSeconds += 1;
+                }
+                if (state.timeLeft <= 0) {
+                    clearInterval(timerId);
+                    timerId = null;
+                    state.running = false;
+                    nextPhase();
+                }
+                saveState();
+                render();
+            }, 1000);
+            saveState();
+            render();
+        }
+
+        function pauseTimer() {
+            clearInterval(timerId);
+            timerId = null;
+            state.running = false;
+            saveState();
+            render();
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            state.timeLeft = phaseDuration();
+            render();
+        }
+
+        function applySetting(key, value) {
+            state[key] = value;
+            if (!state.running) {
+                state.timeLeft = phaseDuration();
+            }
+            saveState();
+            render();
+        }
+
+        document.getElementById("startPauseBtn").addEventListener("click", () => {
+            if (state.running) pauseTimer();
+            else startTimer();
+        });
+        document.getElementById("resetBtn").addEventListener("click", resetTimer);
+        document.getElementById("skipBtn").addEventListener("click", () => {
+            pauseTimer();
+            nextPhase();
+        });
+
+        taskInput.addEventListener("input", () => {
+            state.taskLabel = taskInput.value;
+            saveState();
+            render();
+        });
+
+        ["focusMinutes", "shortBreakMinutes", "longBreakMinutes", "sessionsBeforeLongBreak"].forEach((id) => {
+            document.getElementById(id).addEventListener("input", (event) => {
+                const value = Math.max(1, Number(event.target.value) || defaults[id]);
+                applySetting(id, value);
+            });
+        });
+
+        document.getElementById("minimalBtn").addEventListener("click", () => {
+            document.body.classList.toggle("minimal");
+        });
+
+        document.getElementById("fullscreenBtn").addEventListener("click", async () => {
+            if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+            else await document.exitFullscreen();
+        });
+
+        render();
+    </script>
+</body>
+</html>

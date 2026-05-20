@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Analyzer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #080b14;
+            color: #e2e8f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .inet-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #f87171;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2)
+        }
+
+        .main-layout {
+            display: flex;
+            flex: 1;
+            overflow: hidden
+        }
+
+        .input-col {
+            width: 380px;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            flex-shrink: 0
+        }
+
+        .input-body {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        .field-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px
+        }
+
+        .field-input,
+        .field-textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s
+        }
+
+        .field-input:focus,
+        .field-textarea:focus {
+            border-color: rgba(129, 140, 248, 0.5)
+        }
+
+        .field-input::placeholder,
+        .field-textarea::placeholder {
+            color: rgba(255, 255, 255, 0.2)
+        }
+
+        .field-textarea {
+            resize: none;
+            line-height: 1.6
+        }
+
+        .criteria-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px
+        }
+
+        .crit-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 13px
+        }
+
+        .crit-item:hover {
+            border-color: rgba(129, 140, 248, 0.3)
+        }
+
+        .crit-item.checked {
+            background: rgba(129, 140, 248, 0.1);
+            border-color: rgba(129, 140, 248, 0.4);
+            color: #a5b4fc
+        }
+
+        .crit-check {
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            flex-shrink: 0;
+            transition: all 0.2s
+        }
+
+        .crit-item.checked .crit-check {
+            background: #818cf8;
+            border-color: #818cf8
+        }
+
+        .custom-crit {
+            display: flex;
+            gap: 8px
+        }
+
+        .custom-crit input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 13px;
+            outline: none
+        }
+
+        .custom-crit input::placeholder {
+            color: rgba(255, 255, 255, 0.25)
+        }
+
+        .add-crit-btn {
+            background: rgba(129, 140, 248, 0.15);
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            color: #a5b4fc;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: all 0.2s
+        }
+
+        .add-crit-btn:hover {
+            background: rgba(129, 140, 248, 0.25)
+        }
+
+        .analyze-btn {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.3), rgba(192, 132, 252, 0.25));
+            border: 1px solid rgba(129, 140, 248, 0.5);
+            color: #ddd6fe;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px
+        }
+
+        .analyze-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px)
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .thinking-note {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            text-align: center
+        }
+
+        .output-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .output-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px
+        }
+
+        .placeholder-msg {
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 14px;
+            line-height: 1.8
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        .section-hdr {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            transition: background 0.2s
+        }
+
+        .section-hdr:hover {
+            background: rgba(255, 255, 255, 0.02)
+        }
+
+        .section-hdr-title {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        .section-collapse {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            transition: transform 0.2s
+        }
+
+        .section-body {
+            padding: 14px 16px;
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.8)
+        }
+
+        .thinking-body {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            line-height: 1.5
+        }
+
+        .pros-cons-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px
+        }
+
+        .pros-list {
+            background: rgba(52, 211, 153, 0.06);
+            border: 1px solid rgba(52, 211, 153, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-height: 40px
+        }
+
+        .cons-list {
+            background: rgba(239, 68, 68, 0.06);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            min-height: 40px
+        }
+
+        .pc-item {
+            font-size: 12px;
+            margin-bottom: 6px;
+            line-height: 1.4;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            color: rgba(255, 255, 255, 0.8)
+        }
+
+        .pc-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px
+        }
+
+        .pros-list .pc-title {
+            color: #34d399
+        }
+
+        .cons-list .pc-title {
+            color: #f87171
+        }
+
+        .score-table {
+            width: 100%;
+            border-collapse: collapse
+        }
+
+        .score-table th,
+        .score-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            font-size: 13px
+        }
+
+        .score-table th {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.4)
+        }
+
+        .score-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 4px
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 3px;
+            background: linear-gradient(90deg, #818cf8, #c084fc);
+            transition: width 0.6s ease
+        }
+
+        .recommendation-box {
+            background: linear-gradient(135deg, rgba(129, 140, 248, 0.1), rgba(192, 132, 252, 0.08));
+            border: 1px solid rgba(129, 140, 248, 0.3);
+            border-radius: 12px;
+            padding: 16px
+        }
+
+        .rec-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #a5b4fc;
+            margin-bottom: 8px
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 15px;
+            background: #818cf8;
+            animation: blink 0.7s infinite;
+            vertical-align: middle
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        .export-bar {
+            padding: 10px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.07);
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0
+        }
+
+        .export-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s
+        }
+
+        .export-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.13);
+            border-radius: 3px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="inet-banner">📡 Internet required — Thinking mode uses more tokens (expect 15–40s response) — Groq API
+    </div>
+    <div class="header">
+        <div class="header-title">🧠 Decision Analyzer</div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="main-layout">
+        <!-- INPUT COLUMN -->
+        <div class="input-col">
+            <div class="input-body">
+                <div>
+                    <div class="field-label">Decision Title</div>
+                    <input class="field-input" id="decisionTitle"
+                        placeholder="e.g., Should I use PostgreSQL or MongoDB?" />
+                </div>
+                <div>
+                    <div class="field-label">Options (one per line or comma-separated)</div>
+                    <textarea class="field-textarea" id="optionsInput" rows="4"
+                        placeholder="PostgreSQL&#10;MongoDB"></textarea>
+                </div>
+                <div>
+                    <div class="field-label">Evaluation Criteria</div>
+                    <div class="criteria-grid" id="criteriaGrid">
+                        <div class="crit-item checked" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>💰 Cost</span>
+                        </div>
+                        <div class="crit-item checked" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>📈 Scalability</span>
+                        </div>
+                        <div class="crit-item" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>📚 Learning Curve</span>
+                        </div>
+                        <div class="crit-item checked" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>🔧 Maintenance</span>
+                        </div>
+                        <div class="crit-item" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>👥 Team Familiarity</span>
+                        </div>
+                        <div class="crit-item" onclick="toggleCrit(this)">
+                            <div class="crit-check"></div><span>⚡ Performance</span>
+                        </div>
+                    </div>
+                    <div class="custom-crit" style="margin-top:8px">
+                        <input id="customCritInput" placeholder="Add custom criterion..." />
+                        <button class="add-crit-btn" onclick="addCustomCrit()">+ Add</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="field-label">Optional Context</div>
+                    <textarea class="field-textarea" id="contextInput" rows="3"
+                        placeholder="Add any background info, constraints, or team context..."></textarea>
+                </div>
+                <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">🔮 Analyze Decision</button>
+                <div class="thinking-note">⏱️ Thinking mode enabled — expect 15–40s for deep reasoning</div>
+            </div>
+        </div>
+
+        <!-- OUTPUT COLUMN -->
+        <div class="output-col">
+            <div class="output-scroll" id="outputScroll">
+                <div class="placeholder-msg">
+                    🧠 Fill in the decision form<br>and click <strong>Analyze Decision</strong><br>to receive an
+                    AI-powered deep analysis
+                </div>
+            </div>
+            <div class="export-bar">
+                <button class="export-btn" onclick="exportMarkdown()">📋 Copy as Markdown</button>
+                <button class="export-btn" onclick="exportPDF()">🖨️ Print / Save PDF</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
+        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        let busy = false;
+        let lastResult = '';
+
+        function toggleCrit(el) { el.classList.toggle('checked'); }
+
+        function addCustomCrit() {
+            const inp = document.getElementById('customCritInput');
+            const val = inp.value.trim(); if (!val) return;
+            const grid = document.getElementById('criteriaGrid');
+            const item = document.createElement('div'); item.className = 'crit-item checked';
+            item.onclick = () => item.classList.toggle('checked');
+            item.innerHTML = `<div class="crit-check"></div><span>✏️ ${val}</span>`;
+            grid.appendChild(item); inp.value = '';
+        }
+
+        function getCheckedCriteria() {
+            return [...document.querySelectorAll('.crit-item.checked')].map(el => el.querySelector('span').textContent.replace(/^[^ ]+ /, ''));
+        }
+
+
+
+        function getGroqError(xhr) {
+            try {
+                const payload = JSON.parse(xhr.responseText);
+                if (payload && payload.error) {
+                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
+                }
+            } catch (_) { }
+            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
+        }
+
+        function buildGroqPayload(messages, opts) {
+            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
+            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
+                payload.max_completion_tokens = payload.max_tokens;
+            }
+            delete payload.max_tokens;
+            if (payload.reasoning_effort == null) {
+                payload.reasoning_effort = 'medium';
+            }
+            return payload;
+        }
+
+        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        function xhrStream(messages, opts, onChunk, onDone, onErr) {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', GROQ_API_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                let pos = 0;
+                function parse() {
+                    const raw = xhr.responseText;
+                    if (raw.length <= pos) return;
+                    const nt = raw.slice(pos); pos = raw.length;
+                    nt.split('\n').forEach(line => {
+                        if (!line.startsWith('data: ')) return;
+                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
+                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
+                    });
+                }
+                xhr.onprogress = parse;
+                xhr.onload = () => {
+                    parse();
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        onDone && onDone();
+                        return;
+                    }
+                    onErr && onErr(getGroqError(xhr));
+                };
+                xhr.onerror = () => onErr && onErr('Network error');
+                xhr.ontimeout = () => onErr && onErr('Timeout');
+                xhr.timeout = 180000; // 3 min for thinking mode
+                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
+            } catch (e) { onErr && onErr(e.message); }
+        }
+
+        function runAnalysis() {
+            if (busy) return;
+            const title = document.getElementById('decisionTitle').value.trim();
+            const optRaw = document.getElementById('optionsInput').value.trim();
+            if (!title || !optRaw) { alert('Please fill in the decision title and options!'); return; }
+
+            const options = optRaw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+            const criteria = getCheckedCriteria();
+            const context = document.getElementById('contextInput').value.trim();
+
+            const scroll = document.getElementById('outputScroll');
+            scroll.innerHTML = '<div style="color:rgba(255,255,255,0.4);padding:30px;text-align:center;font-size:13px">🔮 Thinking deeply... please wait 15–40 seconds...<br><br><div style="width:40px;height:40px;border:3px solid rgba(129,140,248,0.2);border-top-color:#818cf8;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto"></div></div>';
+
+            const style = document.createElement('style');
+            style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+            document.head.appendChild(style);
+
+            busy = true; document.getElementById('analyzeBtn').disabled = true;
+
+            const sysPrompt = `Analyze this decision thoroughly. Consider each criterion carefully before concluding.
+
+Decision: ${title}
+Options: ${options.join(', ')}
+Criteria: ${criteria.join(', ')}
+${context ? 'Context: ' + context : ''}
+
+Provide your analysis in this EXACT format (use these exact section markers):
+
+[THINKING]
+Your internal reasoning process here
+[/THINKING]
+
+[PROS_CONS]
+For each option, list pros and cons in this format:
+OPTION: <option name>
+PROS: <pro1> | <pro2> | <pro3>
+CONS: <con1> | <con2> | <con3>
+[/PROS_CONS]
+
+[SCORES]
+Score each option on each criterion from 1-10:
+OPTION: <name> | ${criteria.map(c => `${c}: <score>`).join(' | ')}
+[/SCORES]
+
+[RECOMMENDATION]
+Your final recommendation with clear explanation
+[/RECOMMENDATION]`;
+
+            let full = '';
+            xhrStream(
+                [{ role: 'system', content: sysPrompt }, { role: 'user', content: 'Please analyze this decision.' }],
+                { max_tokens: 4000, temperature: 0.7 },
+                (tok) => { full += tok; },
+                () => {
+                    lastResult = full;
+                    renderResult(full, options, criteria, scroll);
+                    busy = false; document.getElementById('analyzeBtn').disabled = false;
+                },
+                (e) => {
+                    scroll.innerHTML = `<div style="color:#f87171;padding:16px">⚠️ Error: ${e}</div>`;
+                    busy = false; document.getElementById('analyzeBtn').disabled = false;
+                }
+            );
+        }
+
+        function renderResult(full, options, criteria, scroll) {
+            scroll.innerHTML = '';
+
+            const thinking = extract(full, 'THINKING');
+            const prosCons = extract(full, 'PROS_CONS');
+            const scores = extract(full, 'SCORES');
+            const rec = extract(full, 'RECOMMENDATION');
+
+            // Thinking panel (collapsible)
+            if (thinking) {
+                const card = makeCard('🧪 Reasoning Process (Thinking Mode)', true);
+                const body = card.querySelector('.section-body');
+                const tb = document.createElement('div'); tb.className = 'thinking-body'; tb.textContent = thinking;
+                body.appendChild(tb);
+                scroll.appendChild(card);
+            }
+
+            // Pros/Cons
+            if (prosCons) {
+                const card = makeCard('⚖️ Pros & Cons Analysis', false);
+                const body = card.querySelector('.section-body');
+                const grid = document.createElement('div');
+                grid.style.cssText = 'display:flex;flex-direction:column;gap:16px';
+                options.forEach(opt => {
+                    const block = parseOptionPC(opt, prosCons); if (!block) return;
+                    const optTitle = document.createElement('div'); optTitle.style.cssText = 'font-size:13px;font-weight:700;color:#a5b4fc;margin-bottom:8px';
+                    optTitle.textContent = '🔹 ' + opt;
+                    const pcGrid = document.createElement('div'); pcGrid.className = 'pros-cons-grid';
+                    const pros = document.createElement('div'); pros.className = 'pros-list';
+                    const cons = document.createElement('div'); cons.className = 'cons-list';
+                    const prosItems = block.pros.length ? block.pros.map(p => `<div class="pc-item">• ${p}</div>`).join('') : '<div class="pc-item" style="color:rgba(255,255,255,0.5);">• No significant pros found</div>';
+                    const consItems = block.cons.length ? block.cons.map(c => `<div class="pc-item">• ${c}</div>`).join('') : '<div class="pc-item" style="color:rgba(255,255,255,0.5);">• No significant cons found</div>';
+                    pros.innerHTML = `<div class="pc-title">✅ Pros</div>${prosItems}`;
+                    cons.innerHTML = `<div class="pc-title">❌ Cons</div>${consItems}`;
+                    pcGrid.appendChild(pros); pcGrid.appendChild(cons);
+                    const wrapper = document.createElement('div'); wrapper.appendChild(optTitle); wrapper.appendChild(pcGrid);
+                    grid.appendChild(wrapper);
+                });
+                body.appendChild(grid); scroll.appendChild(card);
+            }
+
+            // Weighted Scores
+            if (scores) {
+                const card = makeCard('📊 Weighted Score Matrix', false);
+                const body = card.querySelector('.section-body');
+                const table = document.createElement('table'); table.className = 'score-table';
+                const thead = document.createElement('tr'); thead.innerHTML = '<th>Option</th>' + criteria.map(c => `<th>${c}</th>`).join('') + '<th>Total</th>';
+                table.appendChild(thead);
+                options.forEach(opt => {
+                    const row = document.createElement('tr');
+                    const cell = document.createElement('td'); cell.textContent = opt; cell.style.fontWeight = '600'; row.appendChild(cell);
+                    let total = 0; let count = 0;
+                    criteria.forEach(cr => {
+                        const sc = extractScore(scores, opt, cr); total += sc; count++;
+                        const td = document.createElement('td');
+                        td.innerHTML = `<div>${sc}/10</div><div class="score-bar"><div class="score-fill" style="width:${sc * 10}%"></div></div>`;
+                        row.appendChild(td);
+                    });
+                    const avgTd = document.createElement('td');
+                    const avg = count > 0 ? (total / count).toFixed(1) : '-';
+                    avgTd.innerHTML = `<strong>${avg}</strong>`; row.appendChild(avgTd);
+                    table.appendChild(row);
+                });
+                body.appendChild(table); scroll.appendChild(card);
+            }
+
+            // Recommendation
+            const recCard = document.createElement('div'); recCard.className = 'section-card';
+            const recBody = document.createElement('div'); recBody.style.padding = '16px';
+            const recBox = document.createElement('div'); recBox.className = 'recommendation-box';
+            const recTitle = document.createElement('div'); recTitle.className = 'rec-title'; recTitle.textContent = '🏆 Final Recommendation';
+            const recText = document.createElement('div'); recText.style.cssText = 'font-size:13px;line-height:1.7;color:rgba(255,255,255,0.85)';
+            recText.innerHTML = (rec || full.replace(/\[.*?\][\s\S]*?\[\/.*?\]/g, '')).trim().replace(/\n/g, '<br>');
+            recBox.appendChild(recTitle); recBox.appendChild(recText); recBody.appendChild(recBox); recCard.appendChild(recBody);
+            scroll.appendChild(recCard);
+        }
+
+        function makeCard(title, collapsed) {
+            const card = document.createElement('div'); card.className = 'section-card';
+            const hdr = document.createElement('div'); hdr.className = 'section-hdr';
+            const t = document.createElement('div'); t.className = 'section-hdr-title'; t.innerHTML = title;
+            const arr = document.createElement('div'); arr.className = 'section-collapse'; arr.textContent = collapsed ? '▶' : '▼';
+            hdr.appendChild(t); hdr.appendChild(arr);
+            const body = document.createElement('div'); body.className = 'section-body';
+            body.style.display = collapsed ? 'none' : 'block';
+            hdr.onclick = () => { const show = body.style.display === 'none'; body.style.display = show ? 'block' : 'none'; arr.textContent = show ? '▼' : '▶'; };
+            card.appendChild(hdr); card.appendChild(body);
+            return card;
+        }
+
+        function extract(text, tag) {
+            const m = text.match(new RegExp(`\\[${tag}\\]([\\s\\S]*?)\\[\\/${tag}\\]`, 'i'));
+            return m ? m[1].trim() : null;
+        }
+
+        function parseOptionPC(option, text) {
+            const optEsc = escRe(option.trim());
+            // Match OPTION: <name> section
+            const sectionRe = new RegExp(`OPTION:\s*${optEsc}([\s\S]*?)(?=OPTION:|$)`, 'i');
+            const sectionMatch = text.match(sectionRe);
+            if (!sectionMatch) return { pros: [], cons: [] };
+            
+            const section = sectionMatch[1];
+            
+            // Extract PROS line
+            const prosRe = /PROS:\s*(.+?)(?=\nCONS:|\n\n|$)/is;
+            const prosMatch = section.match(prosRe);
+            let pros = [];
+            if (prosMatch) {
+                const prosText = prosMatch[1].trim();
+                // Split by | or by comma
+                pros = prosText.split(/[\|,]/).map(s => s.trim()).filter(s => s && s !== 'See detailed analysis');
+            }
+            
+            // Extract CONS line
+            const consRe = /CONS:\s*(.+?)(?=\n\n|$)/is;
+            const consMatch = section.match(consRe);
+            let cons = [];
+            if (consMatch) {
+                const consText = consMatch[1].trim();
+                // Split by | or by comma
+                cons = consText.split(/[\|,]/).map(s => s.trim()).filter(s => s && s !== 'See detailed analysis');
+            }
+            
+            return { pros: pros.length ? pros : [], cons: cons.length ? cons : [] };
+        }
+
+        function extractScore(text, option, criterion) {
+            const re = new RegExp(`OPTION:\\s*${escRe(option)}[^\\n]*${escRe(criterion)}:\\s*(\\d+)`, 'i');
+            const m = text.match(re);
+            return m ? Math.min(10, Math.max(1, parseInt(m[1]))) : 5;
+        }
+
+        function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+        function exportMarkdown() {
+            if (!lastResult) { alert('Run an analysis first!'); return; }
+            const title = document.getElementById('decisionTitle').value;
+            const md = `# Decision Analysis: ${title}\n\n${lastResult}`;
+            navigator.clipboard.writeText(md).then(() => showToast('📋 Markdown copied!')).catch(() => showToast('❌ Copy failed', 'err'));
+        }
+
+        function exportPDF() { window.print(); }
+
+        function showToast(msg, t = 'ok') { const el = document.createElement('div'); const bg = t === 'err' ? 'rgba(239,68,68,0.9)' : 'rgba(16,185,129,0.9)'; el.style.cssText = `position:fixed;top:16px;right:16px;background:${bg};color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999`; el.textContent = msg; document.body.appendChild(el); setTimeout(() => el.remove(), 2500); }
+
+        window.closePanel = function () {
+            if (window.parent && window.parent !== window) { 
+                try { 
+                    if (typeof window.parent.closeDecisionAnalyzer === 'function') window.parent.closeDecisionAnalyzer(); 
+                } catch (e) { }
+                try { window.parent.postMessage({ action: 'closeDecisionAnalyzer' }, window.location.origin || '*'); } catch (e) { }
+            }
+            try { window.close(); } catch (e) { }
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+    </script>
+</body>
+
+</html>

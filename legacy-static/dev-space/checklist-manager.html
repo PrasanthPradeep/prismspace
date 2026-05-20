@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checklist Manager</title>
+    <style>
+        :root {
+            --bg: #0b0d0f;
+            --panel: #12161a;
+            --panel-2: #171c21;
+            --border: #28313a;
+            --text: #f3f4f6;
+            --muted: #94a3b8;
+            --accent: #22c55e;
+            --danger: #ef4444;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top, #12202a 0%, var(--bg) 35%);
+            color: var(--text);
+        }
+        .app {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            min-height: 100vh;
+        }
+        .sidebar, .content { padding: 24px; }
+        .sidebar {
+            background: rgba(7, 10, 13, 0.88);
+            border-right: 1px solid var(--border);
+        }
+        .content {
+            display: grid;
+            gap: 20px;
+            align-content: start;
+        }
+        h1, h2, h3, p { margin: 0; }
+        h1 { font-size: 28px; margin-bottom: 8px; }
+        .muted { color: var(--muted); }
+        .small { font-size: 13px; }
+        .panel {
+            background: rgba(18, 22, 26, 0.94);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 18px;
+        }
+        .toolbar, .row { display: flex; gap: 12px; align-items: center; }
+        .toolbar { justify-content: space-between; flex-wrap: wrap; }
+        .row.wrap { flex-wrap: wrap; }
+        button, input, select, textarea {
+            font: inherit;
+            color: inherit;
+            background: #0e1317;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        button {
+            cursor: pointer;
+            background: #10171c;
+        }
+        button.primary {
+            background: rgba(34, 197, 94, 0.14);
+            border-color: rgba(34, 197, 94, 0.45);
+        }
+        button.danger {
+            background: rgba(239, 68, 68, 0.12);
+            border-color: rgba(239, 68, 68, 0.4);
+        }
+        input, select { width: 100%; }
+        .checklist-list {
+            margin-top: 18px;
+            display: grid;
+            gap: 8px;
+        }
+        .checklist-pill {
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0d1217;
+            cursor: pointer;
+        }
+        .checklist-pill.active {
+            border-color: rgba(34, 197, 94, 0.45);
+            background: rgba(34, 197, 94, 0.08);
+        }
+        .progress-track {
+            height: 10px;
+            border-radius: 999px;
+            background: #0c1014;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0;
+            background: linear-gradient(90deg, #22c55e, #4ade80);
+            transition: width 160ms ease;
+        }
+        .items {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: grid;
+            gap: 10px;
+        }
+        .item {
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: #0f1418;
+        }
+        .item[draggable="true"] { cursor: grab; }
+        .item.dragging { opacity: 0.45; }
+        .item.checked {
+            opacity: 0.58;
+        }
+        .item.checked .item-text {
+            text-decoration: line-through;
+            color: var(--muted);
+        }
+        .drag-handle {
+            color: var(--muted);
+            font-size: 18px;
+            user-select: none;
+        }
+        .item-text {
+            width: 100%;
+            background: transparent;
+            border: 0;
+            padding: 0;
+        }
+        .template-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+        .template-card {
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0f1418;
+            display: grid;
+            gap: 8px;
+        }
+        .empty {
+            border: 1px dashed var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            text-align: center;
+            color: var(--muted);
+        }
+        @media print {
+            body { background: #fff; color: #111; }
+            .sidebar, .toolbar, .templates-panel { display: none !important; }
+            .app { display: block; }
+            .content, .panel { padding: 0; border: 0; background: #fff; box-shadow: none; }
+            .item { break-inside: avoid; background: #fff; border-color: #ddd; }
+            .item-text { color: #111; }
+        }
+        @media (max-width: 900px) {
+            .app { grid-template-columns: 1fr; }
+            .sidebar { border-right: 0; border-bottom: 1px solid var(--border); }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <aside class="sidebar">
+            <h1>Checklist Manager</h1>
+            <p class="muted small">Named checklists, templates, drag-and-drop, and printable pages.</p>
+            <div class="panel" style="margin-top:18px;">
+                <div class="row">
+                    <input id="newChecklistName" type="text" placeholder="New checklist name">
+                    <button id="createChecklistBtn" class="primary">Create</button>
+                </div>
+                <div class="row" style="margin-top:12px;">
+                    <select id="templateSelect"></select>
+                    <button id="useTemplateBtn">Use Template</button>
+                </div>
+            </div>
+            <div class="checklist-list" id="checklistList"></div>
+        </aside>
+
+        <main class="content">
+            <section class="panel">
+                <div class="toolbar">
+                    <div>
+                        <h2 id="checklistTitle">No checklist selected</h2>
+                        <p class="muted small" id="checklistMeta">Create a list or load a template.</p>
+                    </div>
+                    <div class="row wrap">
+                        <button id="printBtn">Print</button>
+                        <button id="deleteChecklistBtn" class="danger">Delete checklist</button>
+                    </div>
+                </div>
+                <div style="margin-top:16px;">
+                    <div class="row" style="justify-content:space-between; margin-bottom:8px;">
+                        <span class="small muted">Progress</span>
+                        <span id="progressText" class="small muted">0 of 0 done</span>
+                    </div>
+                    <div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="row">
+                    <input id="newItemInput" type="text" placeholder="Add an item and press Enter">
+                    <button id="addItemBtn" class="primary">Add Item</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <ul class="items" id="itemsList"></ul>
+                <div id="emptyState" class="empty">No items yet. Add one above or load a template.</div>
+            </section>
+
+            <section class="panel templates-panel">
+                <h3 style="margin-bottom:12px;">Template Library</h3>
+                <div id="templateGrid" class="template-grid"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "prism.checklists.v1";
+        const templates = {
+            "Travel Packing": ["Passport", "Wallet", "Phone charger", "Clothes", "Toiletries", "Medications", "Tickets", "Headphones"],
+            "House Cleaning": ["Make the bed", "Vacuum floors", "Clean kitchen counters", "Take out trash", "Wipe bathroom mirror", "Laundry", "Dust shelves"],
+            "Weekly Review": ["Review calendar", "Capture loose notes", "Close open loops", "Plan next week", "Review goals", "Clean desktop"],
+            "Grocery Basics": ["Milk", "Eggs", "Bread", "Rice", "Vegetables", "Fruit", "Coffee", "Soap"]
+        };
+
+        let state = loadState();
+        let activeChecklistId = state.activeChecklistId || state.checklists[0]?.id || null;
+        let draggedItemId = null;
+
+        const checklistList = document.getElementById("checklistList");
+        const itemsList = document.getElementById("itemsList");
+        const checklistTitle = document.getElementById("checklistTitle");
+        const checklistMeta = document.getElementById("checklistMeta");
+        const progressText = document.getElementById("progressText");
+        const progressBar = document.getElementById("progressBar");
+        const emptyState = document.getElementById("emptyState");
+        const templateSelect = document.getElementById("templateSelect");
+        const templateGrid = document.getElementById("templateGrid");
+
+        function uid() {
+            return Math.random().toString(36).slice(2, 10);
+        }
+
+        function loadState() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                if (saved && Array.isArray(saved.checklists)) return saved;
+            } catch {}
+            return { checklists: [], activeChecklistId: null };
+        }
+
+        function saveState() {
+            state.activeChecklistId = activeChecklistId;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function getActiveChecklist() {
+            return state.checklists.find((list) => list.id === activeChecklistId) || null;
+        }
+
+        function createChecklist(name, items = []) {
+            const checklist = {
+                id: uid(),
+                name,
+                createdAt: Date.now(),
+                items: items.map((text, index) => ({ id: uid() + index, text, checked: false }))
+            };
+            state.checklists.unshift(checklist);
+            activeChecklistId = checklist.id;
+            saveState();
+            render();
+        }
+
+        function renderChecklistList() {
+            checklistList.innerHTML = "";
+            state.checklists.forEach((list) => {
+                const done = list.items.filter((item) => item.checked).length;
+                const card = document.createElement("button");
+                card.type = "button";
+                card.className = "checklist-pill" + (list.id === activeChecklistId ? " active" : "");
+                card.innerHTML = "<strong>" + escapeHtml(list.name) + "</strong><div class='small muted' style='margin-top:4px;'>" + done + "/" + list.items.length + " complete</div>";
+                card.addEventListener("click", () => {
+                    activeChecklistId = list.id;
+                    saveState();
+                    render();
+                });
+                checklistList.appendChild(card);
+            });
+        }
+
+        function renderItems() {
+            const checklist = getActiveChecklist();
+            itemsList.innerHTML = "";
+
+            if (!checklist) {
+                checklistTitle.textContent = "No checklist selected";
+                checklistMeta.textContent = "Create a list or load a template.";
+                progressText.textContent = "0 of 0 done";
+                progressBar.style.width = "0%";
+                emptyState.style.display = "block";
+                return;
+            }
+
+            checklistTitle.textContent = checklist.name;
+            const total = checklist.items.length;
+            const completed = checklist.items.filter((item) => item.checked).length;
+            const percent = total ? (completed / total) * 100 : 0;
+            checklistMeta.textContent = "Drag to reorder. Checked items automatically move to the bottom.";
+            progressText.textContent = completed + " of " + total + " done";
+            progressBar.style.width = percent + "%";
+
+            if (!total) {
+                emptyState.style.display = "block";
+                return;
+            }
+
+            emptyState.style.display = "none";
+
+            checklist.items.forEach((item) => {
+                const li = document.createElement("li");
+                li.className = "item" + (item.checked ? " checked" : "");
+                li.draggable = true;
+                li.dataset.id = item.id;
+                li.innerHTML = `
+                    <span class="drag-handle">::</span>
+                    <input class="item-text" value="${escapeAttr(item.text)}" />
+                    <input type="checkbox" ${item.checked ? "checked" : ""} />
+                    <button type="button">Remove</button>
+                `;
+
+                const textInput = li.querySelector(".item-text");
+                const checkbox = li.querySelector('input[type="checkbox"]');
+                const removeBtn = li.querySelector("button");
+
+                textInput.addEventListener("input", () => {
+                    item.text = textInput.value;
+                    saveState();
+                    renderChecklistList();
+                });
+
+                checkbox.addEventListener("change", () => {
+                    item.checked = checkbox.checked;
+                    reorderCheckedItems(checklist);
+                    saveState();
+                    render();
+                });
+
+                removeBtn.addEventListener("click", () => {
+                    checklist.items = checklist.items.filter((entry) => entry.id !== item.id);
+                    saveState();
+                    render();
+                });
+
+                li.addEventListener("dragstart", () => {
+                    draggedItemId = item.id;
+                    li.classList.add("dragging");
+                });
+
+                li.addEventListener("dragend", () => {
+                    draggedItemId = null;
+                    li.classList.remove("dragging");
+                });
+
+                li.addEventListener("dragover", (event) => {
+                    event.preventDefault();
+                });
+
+                li.addEventListener("drop", (event) => {
+                    event.preventDefault();
+                    if (!draggedItemId || draggedItemId === item.id) return;
+                    const fromIndex = checklist.items.findIndex((entry) => entry.id === draggedItemId);
+                    const toIndex = checklist.items.findIndex((entry) => entry.id === item.id);
+                    const [moved] = checklist.items.splice(fromIndex, 1);
+                    checklist.items.splice(toIndex, 0, moved);
+                    saveState();
+                    render();
+                });
+
+                itemsList.appendChild(li);
+            });
+        }
+
+        function reorderCheckedItems(checklist) {
+            checklist.items.sort((a, b) => Number(a.checked) - Number(b.checked));
+        }
+
+        function renderTemplates() {
+            templateSelect.innerHTML = Object.keys(templates).map((name) => "<option>" + name + "</option>").join("");
+            templateGrid.innerHTML = "";
+            Object.entries(templates).forEach(([name, items]) => {
+                const card = document.createElement("div");
+                card.className = "template-card";
+                card.innerHTML = `
+                    <strong>${escapeHtml(name)}</strong>
+                    <div class="small muted">${items.length} items</div>
+                    <button type="button">Create checklist</button>
+                `;
+                card.querySelector("button").addEventListener("click", () => createChecklist(name, items));
+                templateGrid.appendChild(card);
+            });
+        }
+
+        function addItem() {
+            const checklist = getActiveChecklist();
+            const input = document.getElementById("newItemInput");
+            const text = input.value.trim();
+            if (!checklist || !text) return;
+            checklist.items.push({ id: uid(), text, checked: false });
+            input.value = "";
+            saveState();
+            render();
+        }
+
+        function deleteActiveChecklist() {
+            if (!activeChecklistId) return;
+            state.checklists = state.checklists.filter((list) => list.id !== activeChecklistId);
+            activeChecklistId = state.checklists[0]?.id || null;
+            saveState();
+            render();
+        }
+
+        function escapeHtml(value) {
+            return value.replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+        }
+
+        function escapeAttr(value) {
+            return escapeHtml(value);
+        }
+
+        function render() {
+            renderChecklistList();
+            renderItems();
+        }
+
+        document.getElementById("createChecklistBtn").addEventListener("click", () => {
+            const input = document.getElementById("newChecklistName");
+            const name = input.value.trim();
+            if (!name) return;
+            createChecklist(name);
+            input.value = "";
+        });
+        document.getElementById("newChecklistName").addEventListener("keydown", (event) => {
+            if (event.key === "Enter") document.getElementById("createChecklistBtn").click();
+        });
+        document.getElementById("addItemBtn").addEventListener("click", addItem);
+        document.getElementById("newItemInput").addEventListener("keydown", (event) => {
+            if (event.key === "Enter") addItem();
+        });
+        document.getElementById("deleteChecklistBtn").addEventListener("click", deleteActiveChecklist);
+        document.getElementById("useTemplateBtn").addEventListener("click", () => {
+            const selected = templateSelect.value;
+            if (selected) createChecklist(selected, templates[selected]);
+        });
+        document.getElementById("printBtn").addEventListener("click", () => window.print());
+
+        renderTemplates();
+        render();
+    </script>
+</body>
+</html>

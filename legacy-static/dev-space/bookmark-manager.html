@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bookmark Manager</title>
+    <style>
+        :root { --bg:#0b0e13; --panel:#121821; --border:#283241; --text:#f8fafc; --muted:#94a3b8; --accent:#22c55e; }
+        * { box-sizing:border-box; }
+        body { margin:0; font-family:"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at top,#173145 0%,var(--bg) 40%); }
+        .app { padding:24px; display:grid; gap:20px; }
+        .grid { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }
+        .panel { background:rgba(18,24,33,.94); border:1px solid var(--border); border-radius:18px; padding:18px; }
+        h1,h2,h3,p { margin:0; }
+        .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+        .stack { display:grid; gap:12px; }
+        input, textarea, button, select { width:100%; font:inherit; color:inherit; background:#0f141b; border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+        textarea { min-height:90px; resize:vertical; }
+        button { cursor:pointer; width:auto; }
+        .primary { background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.42); }
+        .small { font-size:13px; color:var(--muted); }
+        .filters { display:grid; grid-template-columns:1fr 180px; gap:12px; }
+        .bookmarks { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:16px; }
+        .card { background:#0f141b; border:1px solid var(--border); border-radius:16px; padding:14px; display:grid; gap:10px; }
+        .card:hover { border-color:#3a4658; }
+        .head { display:grid; grid-template-columns:40px 1fr auto; gap:12px; align-items:center; }
+        .favicon, .initial { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:#1a2330; overflow:hidden; font-weight:700; }
+        .tags { display:flex; flex-wrap:wrap; gap:8px; }
+        .tag { padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); font-size:12px; color:var(--muted); }
+        .empty { text-align:center; padding:40px 18px; color:var(--muted); border:1px dashed var(--border); border-radius:16px; }
+        @media (max-width: 940px) { .grid, .filters { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <div>
+            <h1>Bookmark Manager</h1>
+            <p class="small" style="margin-top:8px;">Save, tag, search, import, and export local bookmarks. Works offline except favicons.</p>
+        </div>
+        <div class="grid">
+            <section class="panel stack">
+                <h2>Add Bookmark</h2>
+                <input id="urlInput" placeholder="https://example.com">
+                <input id="titleInput" placeholder="Title">
+                <input id="tagsInput" placeholder="tags, separated, by commas">
+                <textarea id="notesInput" placeholder="Notes"></textarea>
+                <div class="row">
+                    <button id="autofillBtn">Autofill title</button>
+                    <button id="addBtn" class="primary">Add bookmark</button>
+                </div>
+                <p id="addMessage" class="small"></p>
+                <hr style="border-color:var(--border); width:100%;">
+                <h3>Bulk Import</h3>
+                <textarea id="bulkInput" placeholder="Paste one URL per line"></textarea>
+                <div class="row">
+                    <button id="bulkAddBtn">Bulk add</button>
+                    <button id="exportJsonBtn">Export JSON</button>
+                    <button id="exportHtmlBtn">Export HTML</button>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="filters">
+                    <input id="searchInput" placeholder="Search title, URL, or notes">
+                    <select id="tagFilter"><option value="">All tags</option></select>
+                </div>
+                <div class="bookmarks" id="bookmarks"></div>
+                <div id="emptyState" class="empty">No bookmarks yet.</div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = "prism.bookmarks.v1";
+        let bookmarks = loadBookmarks();
+
+        function loadBookmarks() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+                return Array.isArray(saved) ? saved : [];
+            } catch { return []; }
+        }
+        function saveBookmarks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks)); }
+        function uid() { return Math.random().toString(36).slice(2, 10); }
+        function normalizeUrl(url) {
+            try {
+                const parsed = new URL(url.startsWith("http") ? url : "https://" + url);
+                parsed.hash = "";
+                return parsed.toString();
+            } catch { return null; }
+        }
+        function titleFromUrl(url) {
+            try {
+                const parsed = new URL(normalizeUrl(url));
+                return parsed.hostname.replace(/^www\./, "");
+            } catch { return ""; }
+        }
+        function addBookmark(raw) {
+            const normalized = normalizeUrl(raw.url);
+            if (!normalized) return { ok: false, message: "Invalid URL" };
+            if (bookmarks.some((entry) => entry.url === normalized)) return { ok: false, message: "Duplicate bookmark" };
+            const title = raw.title.trim() || titleFromUrl(normalized);
+            const tags = raw.tags.split(",").map((tag) => tag.trim()).filter(Boolean);
+            bookmarks.unshift({ id: uid(), url: normalized, title, tags, notes: raw.notes.trim(), createdAt: Date.now(), lastVisited: null });
+            saveBookmarks();
+            render();
+            return { ok: true, message: "Bookmark added" };
+        }
+        function allTags() {
+            return [...new Set(bookmarks.flatMap((entry) => entry.tags))].sort((a, b) => a.localeCompare(b));
+        }
+        function renderTagFilter() {
+            const select = document.getElementById("tagFilter");
+            const value = select.value;
+            select.innerHTML = '<option value="">All tags</option>' + allTags().map((tag) => '<option value="' + escapeHtml(tag) + '">' + escapeHtml(tag) + '</option>').join("");
+            select.value = value;
+        }
+        function faviconHtml(url, title) {
+            try {
+                const domain = new URL(url).hostname;
+                return '<img class="favicon" src="https://www.google.com/s2/favicons?domain=' + domain + '&sz=64" alt="" onerror="this.replaceWith(document.createRange().createContextualFragment(\'<div class=&quot;initial&quot;>' + escapeHtml(title.charAt(0).toUpperCase() || domain.charAt(0).toUpperCase()) + '</div>\'));">';
+            } catch {
+                return '<div class="initial">' + escapeHtml(title.charAt(0).toUpperCase() || "?") + "</div>";
+            }
+        }
+        function openBookmark(id) {
+            const entry = bookmarks.find((bookmark) => bookmark.id === id);
+            if (!entry) return;
+            entry.lastVisited = Date.now();
+            saveBookmarks();
+            window.open(entry.url, "_blank", "noopener");
+            render();
+        }
+        function render() {
+            renderTagFilter();
+            const term = document.getElementById("searchInput").value.trim().toLowerCase();
+            const tag = document.getElementById("tagFilter").value;
+            const list = bookmarks.filter((entry) => {
+                const haystack = [entry.title, entry.url, entry.notes, entry.tags.join(" ")].join(" ").toLowerCase();
+                return (!term || haystack.includes(term)) && (!tag || entry.tags.includes(tag));
+            });
+            const container = document.getElementById("bookmarks");
+            container.innerHTML = "";
+            document.getElementById("emptyState").style.display = list.length ? "none" : "block";
+            list.forEach((entry) => {
+                const domain = new URL(entry.url).hostname.replace(/^www\./, "");
+                const card = document.createElement("article");
+                card.className = "card";
+                card.innerHTML = `
+                    <div class="head">
+                        ${faviconHtml(entry.url, entry.title)}
+                        <div>
+                            <strong>${escapeHtml(entry.title)}</strong>
+                            <div class="small">${escapeHtml(domain)}</div>
+                        </div>
+                        <button type="button">Open</button>
+                    </div>
+                    <div class="small">${escapeHtml(entry.url)}</div>
+                    <div class="tags">${entry.tags.map((t) => '<span class="tag">' + escapeHtml(t) + '</span>').join("")}</div>
+                    <div class="small">${escapeHtml(entry.notes || "No notes")}</div>
+                    <div class="small">Last visited: ${entry.lastVisited ? new Date(entry.lastVisited).toLocaleString() : "Never"}</div>
+                    <div class="row">
+                        <button type="button" data-remove="${entry.id}">Delete</button>
+                    </div>`;
+                card.querySelector(".head button").addEventListener("click", () => openBookmark(entry.id));
+                card.querySelector("[data-remove]").addEventListener("click", () => {
+                    bookmarks = bookmarks.filter((bookmark) => bookmark.id !== entry.id);
+                    saveBookmarks();
+                    render();
+                });
+                container.appendChild(card);
+            });
+        }
+        function escapeHtml(value) {
+            return String(value).replace(/[&<>"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[char]));
+        }
+        function download(filename, content, type) {
+            const blob = new Blob([content], { type });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+
+        document.getElementById("autofillBtn").addEventListener("click", () => {
+            document.getElementById("titleInput").value = titleFromUrl(document.getElementById("urlInput").value);
+        });
+        document.getElementById("addBtn").addEventListener("click", () => {
+            const result = addBookmark({
+                url: document.getElementById("urlInput").value,
+                title: document.getElementById("titleInput").value,
+                tags: document.getElementById("tagsInput").value,
+                notes: document.getElementById("notesInput").value
+            });
+            document.getElementById("addMessage").textContent = result.message;
+            if (result.ok) ["urlInput", "titleInput", "tagsInput", "notesInput"].forEach((id) => document.getElementById(id).value = "");
+        });
+        document.getElementById("bulkAddBtn").addEventListener("click", () => {
+            const lines = document.getElementById("bulkInput").value.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+            let added = 0;
+            lines.forEach((url) => { if (addBookmark({ url, title: "", tags: "", notes: "" }).ok) added += 1; });
+            document.getElementById("addMessage").textContent = "Added " + added + " bookmark(s)";
+            document.getElementById("bulkInput").value = "";
+        });
+        document.getElementById("exportJsonBtn").addEventListener("click", () => {
+            download("prism-bookmarks.json", JSON.stringify(bookmarks, null, 2), "application/json");
+        });
+        document.getElementById("exportHtmlBtn").addEventListener("click", () => {
+            const html = `<!DOCTYPE NETSCAPE-Bookmark-file-1><META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8"><TITLE>Bookmarks</TITLE><H1>Bookmarks</H1><DL><p>${bookmarks.map((entry) => `<DT><A HREF="${entry.url}">${escapeHtml(entry.title)}</A>`).join("")}</DL><p>`;
+            download("prism-bookmarks.html", html, "text/html");
+        });
+        document.getElementById("searchInput").addEventListener("input", render);
+        document.getElementById("tagFilter").addEventListener("change", render);
+        render();
+    </script>
+</body>
+</html>

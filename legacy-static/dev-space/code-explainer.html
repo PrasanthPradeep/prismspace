@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Explainer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #080b14;
+            color: #e2e8f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .inet-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            flex-shrink: 0
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            align-items: center
+        }
+
+        .sel {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #e2e8f0;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none
+        }
+
+        .sel option {
+            background: #1a1f2e;
+            color: #e2e8f0
+        }
+
+        .depth-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit
+        }
+
+        .depth-btn:hover,
+        .depth-btn.active {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: #fbbf24
+        }
+
+        .run-main-btn {
+            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.2));
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #fbbf24;
+            padding: 7px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-left: auto
+        }
+
+        .run-main-btn:hover {
+            filter: brightness(1.15);
+            transform: translateY(-1px)
+        }
+
+        .run-main-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #f87171;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 1.1rem
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2)
+        }
+
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden
+        }
+
+        .left-pane {
+            width: 45%;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            padding: 14px
+        }
+
+        .right-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            overflow: hidden
+        }
+
+        .pane-label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 8px
+        }
+
+        .code-area {
+            flex: 1;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+            tab-size: 4
+        }
+
+        .code-area:focus {
+            border-color: rgba(245, 158, 11, 0.4)
+        }
+
+        .code-area::placeholder {
+            color: rgba(255, 255, 255, 0.2)
+        }
+
+        .output-scroll {
+            flex: 1;
+            overflow-y: auto
+        }
+
+        .section-block {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px
+        }
+
+        .section-hdr {
+            font-size: 13px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 7px
+        }
+
+        .section-body {
+            font-size: 13px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.82);
+            white-space: pre-wrap
+        }
+
+        .concept-link {
+            color: #60a5fa;
+            text-decoration: none;
+            border-bottom: 1px dashed rgba(96, 165, 250, 0.4)
+        }
+
+        .concept-link:hover {
+            color: #93c5fd;
+            border-bottom-color: #93c5fd
+        }
+
+        .quiz-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 8px
+        }
+
+        .quiz-q {
+            font-size: 13px;
+            color: #e2e8f0;
+            margin-bottom: 8px;
+            font-weight: 500
+        }
+
+        .quiz-toggle {
+            font-size: 12px;
+            color: #34d399;
+            cursor: pointer;
+            display: inline-block
+        }
+
+        .quiz-ans {
+            display: none;
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(52, 211, 153, 0.08);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #6ee7b7;
+            border-left: 2px solid #34d399
+        }
+
+        .bottom-bar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-shrink: 0;
+            flex-wrap: wrap
+        }
+
+        .quiz-btn {
+            background: rgba(96, 165, 250, 0.1);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            color: #93c5fd;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit
+        }
+
+        .quiz-btn:hover {
+            background: rgba(96, 165, 250, 0.2);
+            transform: translateY(-1px)
+        }
+
+        .quiz-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .save-btn {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #6ee7b7;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit
+        }
+
+        .save-btn:hover {
+            background: rgba(52, 211, 153, 0.2)
+        }
+
+        .placeholder-msg {
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            padding: 40px;
+            font-size: 14px
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 15px;
+            background: #fbbf24;
+            animation: blink 0.7s infinite;
+            vertical-align: middle
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.13);
+            border-radius: 3px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="inet-banner">📡 Requires internet connection — Groq API (`openai/gpt-oss-120b`)</div>
+    <div class="header">
+        <div class="header-left">
+            <div class="header-title">🔍 Code Explainer</div>
+        </div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="toolbar">
+        <select class="sel" id="langSel">
+            <option value="JavaScript">JavaScript</option>
+            <option value="Python">Python</option>
+            <option value="TypeScript">TypeScript</option>
+            <option value="Java">Java</option>
+            <option value="C++">C++</option>
+            <option value="C#">C#</option>
+            <option value="Go">Go</option>
+            <option value="Rust">Rust</option>
+            <option value="PHP">PHP</option>
+            <option value="Ruby">Ruby</option>
+            <option value="Swift">Swift</option>
+            <option value="Kotlin">Kotlin</option>
+            <option value="HTML/CSS">HTML/CSS</option>
+            <option value="SQL">SQL</option>
+        </select>
+        <button class="depth-btn active" id="dep0" onclick="setDepth(0,this)">Brief Overview</button>
+        <button class="depth-btn" id="dep1" onclick="setDepth(1,this)">Line by Line</button>
+        <button class="depth-btn" id="dep2" onclick="setDepth(2,this)">Teach Like I'm New</button>
+        <button class="run-main-btn" id="explainBtn" onclick="runExplain()">⚡ Explain Code</button>
+    </div>
+    <div class="main-content">
+        <div class="left-pane">
+            <div class="pane-label">Code Input</div>
+            <textarea class="code-area" id="codeInput"
+                placeholder="// Paste your code here...&#10;// Select language and explanation depth above&#10;// Then click Explain Code ⚡"></textarea>
+        </div>
+        <div class="right-pane">
+            <div class="pane-label">Explanation</div>
+            <div class="output-scroll" id="outputScroll">
+                <div class="placeholder-msg">🚀 Paste your code and click <strong>Explain Code</strong> to get started.
+                </div>
+            </div>
+            <div class="bottom-bar">
+                <button class="quiz-btn" id="quizBtn" onclick="runQuiz()">🧠 Quiz Me</button>
+                <button class="save-btn" id="saveBtn" onclick="saveExplanation()">💾 Save Explanation</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
+        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        let depth = 0;
+        let busy = false;
+        let lastExplanation = '';
+
+        const depths = [
+            { label: 'Brief Overview', prompt: 'Give a brief paragraph overview of what this code does. Then list the key concepts used as: [CONCEPTS]: concept1|url1, concept2|url2. Keep it concise.' },
+            { label: 'Line by Line', prompt: 'Explain this code line by line. For each line or block, explain what it does in simple terms. Then list key concepts: [CONCEPTS]: concept1|url1, concept2|url2.' },
+            { label: 'Teach Like I\'m New', prompt: 'Explain this code as if teaching a complete beginner. Use simple analogies, avoid jargon, explain every concept from scratch. Sections: OVERVIEW, HOW IT WORKS (step by step), WHY each part exists. Then: [CONCEPTS]: concept1|url1.' }
+        ];
+
+        const docLinks = {
+            'JavaScript': 'https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference',
+            'Python': 'https://docs.python.org/3/',
+            'TypeScript': 'https://www.typescriptlang.org/docs/',
+            'Java': 'https://docs.oracle.com/en/java/',
+            'C++': 'https://cppreference.com/',
+            'C#': 'https://learn.microsoft.com/en-us/dotnet/csharp/',
+            'Go': 'https://pkg.go.dev/',
+            'Rust': 'https://doc.rust-lang.org/',
+            'PHP': 'https://www.php.net/docs.php',
+            'Ruby': 'https://ruby-doc.org/',
+            'Swift': 'https://developer.apple.com/documentation/swift',
+            'Kotlin': 'https://kotlinlang.org/docs/',
+            'HTML/CSS': 'https://developer.mozilla.org/en-US/docs/Web',
+            'SQL': 'https://www.w3schools.com/sql/'
+        };
+
+        function setDepth(d, btn) {
+            depth = d;
+            document.querySelectorAll('.depth-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+
+
+        function getGroqError(xhr) {
+            try {
+                const payload = JSON.parse(xhr.responseText);
+                if (payload && payload.error) {
+                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
+                }
+            } catch (_) { }
+            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
+        }
+
+        function buildGroqPayload(messages, opts) {
+            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
+            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
+                payload.max_completion_tokens = payload.max_tokens;
+            }
+            delete payload.max_tokens;
+            if (payload.reasoning_effort == null) {
+                payload.reasoning_effort = 'medium';
+            }
+            return payload;
+        }
+
+        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        function xhrStream(messages, opts, onChunk, onDone, onErr) {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', GROQ_API_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                let pos = 0;
+                function parse() {
+                    const raw = xhr.responseText;
+                    if (raw.length <= pos) return;
+                    const newText = raw.slice(pos); pos = raw.length;
+                    newText.split('\n').forEach(line => {
+                        if (!line.startsWith('data: ')) return;
+                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
+                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
+                    });
+                }
+                xhr.onprogress = parse;
+                xhr.onload = () => {
+                    parse();
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        onDone && onDone();
+                        return;
+                    }
+                    onErr && onErr(getGroqError(xhr));
+                };
+                xhr.onerror = () => onErr && onErr('Network error');
+                xhr.ontimeout = () => onErr && onErr('Timeout');
+                xhr.timeout = 120000;
+                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
+            } catch (e) { onErr && onErr(e.message); }
+        }
+
+        function runExplain() {
+            if (busy) return;
+            const code = document.getElementById('codeInput').value.trim();
+            if (!code) { alert('Please paste some code first!'); return; }
+            const lang = document.getElementById('langSel').value;
+            const scroll = document.getElementById('outputScroll');
+            scroll.innerHTML = ''; busy = true;
+            document.getElementById('explainBtn').disabled = true;
+
+            const sys = `You are an expert ${lang} teacher helping learners and junior devs understand code. ${depths[depth].prompt}`;
+            let full = '';
+
+            const liveBlock = document.createElement('div'); liveBlock.className = 'section-block';
+            const liveBody = document.createElement('div'); liveBody.className = 'section-body';
+            liveBody.innerHTML = '<span class="streaming-cursor"></span>';
+            liveBlock.appendChild(liveBody); scroll.appendChild(liveBlock);
+
+            xhrStream(
+                [{ role: 'system', content: sys }, { role: 'user', content: `${lang} code:\n\`\`\`${lang.toLowerCase()}\n${code}\n\`\`\`` }],
+                { max_tokens: 3000, temperature: 0.6 },
+                (tok) => {
+                    full += tok;
+                    liveBody.innerHTML = escHTML(full).replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>';
+                    scroll.scrollTop = scroll.scrollHeight;
+                },
+                () => {
+                    const cur = liveBody.querySelector('.streaming-cursor'); if (cur) cur.remove();
+                    lastExplanation = full;
+                    renderExplanation(full, lang, scroll, liveBlock);
+                    busy = false; document.getElementById('explainBtn').disabled = false;
+                },
+                (e) => {
+                    scroll.innerHTML = `<div style="color:#f87171;padding:16px">⚠️ Error: ${e}</div>`;
+                    busy = false; document.getElementById('explainBtn').disabled = false;
+                }
+            );
+        }
+
+        function renderExplanation(full, lang, scroll, liveBlock) {
+            scroll.removeChild(liveBlock);
+            scroll.innerHTML = '';
+            const conceptMatch = full.match(/\[CONCEPTS\]:(.*?)(?:\n|$)/i);
+            const mainText = full.replace(/\[CONCEPTS\]:.*?(?:\n|$)/gi, '').trim();
+
+            const mainBlock = document.createElement('div'); mainBlock.className = 'section-block';
+            const hdr = document.createElement('div'); hdr.className = 'section-hdr'; hdr.innerHTML = '📖 Explanation';
+            const body = document.createElement('div'); body.className = 'section-body';
+            body.innerHTML = escHTML(mainText).replace(/\n/g, '<br>');
+            mainBlock.appendChild(hdr); mainBlock.appendChild(body); scroll.appendChild(mainBlock);
+
+            if (conceptMatch) {
+                const concepts = conceptMatch[1].trim().split(',').map(s => s.trim()).filter(Boolean);
+                const cBlock = document.createElement('div'); cBlock.className = 'section-block';
+                const cHdr = document.createElement('div'); cHdr.className = 'section-hdr'; cHdr.innerHTML = '🔑 Key Concepts';
+                const cBody = document.createElement('div'); cBody.className = 'section-body';
+                const baseUrl = docLinks[lang] || 'https://developer.mozilla.org/';
+                concepts.forEach(c => {
+                    const parts = c.split('|'); const name = parts[0].trim(); const url = parts[1]?.trim() || baseUrl;
+                    const link = document.createElement('a'); link.className = 'concept-link'; link.href = url; link.target = '_blank'; link.textContent = name;
+                    cBody.appendChild(link); cBody.appendChild(document.createTextNode(' · '));
+                });
+                cBlock.appendChild(cHdr); cBlock.appendChild(cBody); scroll.appendChild(cBlock);
+            }
+        }
+
+        function runQuiz() {
+            if (busy) return;
+            const code = document.getElementById('codeInput').value.trim();
+            if (!lastExplanation || !code) { alert('Explain the code first!'); return; }
+            const lang = document.getElementById('langSel').value;
+            const scroll = document.getElementById('outputScroll');
+            const existing = scroll.querySelector('.quiz-section');
+            if (existing) existing.remove();
+            busy = true; document.getElementById('quizBtn').disabled = true;
+            let full = '';
+            xhrStream(
+                [{ role: 'system', content: 'Generate exactly 3 comprehension questions about the code with answers. Format as JSON: [{"q":"question","a":"answer"}]. Return ONLY JSON.' },
+                { role: 'user', content: `${lang} code:\n${code}` }],
+                { max_tokens: 1000, temperature: 0.7 },
+                (tok) => { full += tok; },
+                () => {
+                    try {
+                        const qs = JSON.parse(full.match(/\[[\s\S]*\]/)?.[0]);
+                        const qSection = document.createElement('div'); qSection.className = 'section-block quiz-section';
+                        const qHdr = document.createElement('div'); qHdr.className = 'section-hdr'; qHdr.innerHTML = '🧠 Quiz Questions';
+                        qSection.appendChild(qHdr);
+                        qs.forEach((item, i) => {
+                            const card = document.createElement('div'); card.className = 'quiz-card';
+                            const q = document.createElement('div'); q.className = 'quiz-q'; q.textContent = (i + 1) + '. ' + item.q;
+                            const tog = document.createElement('span'); tog.className = 'quiz-toggle'; tog.textContent = 'Show Answer';
+                            const ans = document.createElement('div'); ans.className = 'quiz-ans'; ans.textContent = item.a;
+                            let on = false; tog.onclick = () => { on = !on; ans.style.display = on ? 'block' : 'none'; tog.textContent = on ? 'Hide Answer' : 'Show Answer'; };
+                            card.appendChild(q); card.appendChild(tog); card.appendChild(ans); qSection.appendChild(card);
+                        });
+                        scroll.appendChild(qSection); scroll.scrollTop = scroll.scrollHeight;
+                    } catch (e) { alert('Quiz parse error: ' + e.message); }
+                    busy = false; document.getElementById('quizBtn').disabled = false;
+                },
+                (e) => { alert('Quiz error: ' + e); busy = false; document.getElementById('quizBtn').disabled = false; }
+            );
+        }
+
+        function saveExplanation() {
+            if (!lastExplanation) { alert('Nothing to save!'); return; }
+            const code = document.getElementById('codeInput').value;
+            const lang = document.getElementById('langSel').value;
+            const saved = JSON.parse(localStorage.getItem('ce_saved') || '[]');
+            saved.unshift({ code, lang, explanation: lastExplanation, date: new Date().toLocaleString() });
+            if (saved.length > 10) saved.pop();
+            localStorage.setItem('ce_saved', JSON.stringify(saved));
+            showToast('💾 Saved!');
+        }
+
+        function showToast(msg) { const t = document.createElement('div'); t.style.cssText = 'position:fixed;top:16px;right:16px;background:rgba(16,185,129,0.9);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:9999'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2500); }
+        function escHTML(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+        window.closePanel = function () {
+            if (window.parent && window.parent !== window) { try { window.parent.postMessage({ action: 'closeCodeExplainer' }, '*'); if (typeof window.parent.closeCodeExplainer === 'function') window.parent.closeCodeExplainer(); } catch (e) { window.close(); } } else { window.close(); }
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matrix Test</title>
+    <style>
+        body {
+            background: #000;
+            color: #00ff88;
+            padding: 50px;
+            font-family: 'Courier New', monospace;
+        }
+        .matrix-container {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 60px;
+            min-height: 48px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 20px;
+            position: relative;
+        }
+        .matrix-container:hover {
+            background: rgba(0, 255, 136, 0.15);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            transform: scale(1.05);
+            border-color: rgba(0, 255, 136, 0.5);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3);
+        }
+        .matrix-display {
+            color: #00ff88;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .matrix-svg {
+            display: block;
+            overflow: visible;
+        }
+        .matrix-pixel {
+            transition: opacity 200ms ease-out, transform 100ms ease-out;
+        }
+        .matrix-pixel-active {
+            filter: drop-shadow(0 0 3px currentColor);
+        }
+        .test-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+        .game-info {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 14px;
+            color: #00ff88;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            display: flex;
+            justify-content: space-between;
+        }
+        .score {
+            font-weight: bold;
+        }
+        .controls {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        .game-mode .matrix-pixel-active {
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .game-over-flash {
+            animation: pulse 0.5s infinite;
+        }
+        .matrix-container.game-active {
+            border-color: rgba(0, 255, 136, 0.8);
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
+        }
+        
+        /* Snake Game Dialog Styles */
+        .snake-game-dialog {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(0, 255, 136, 0.3);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            min-width: 200px;
+        }
+        
+        .snake-game-display {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .snake-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .game-button {
+            background: rgba(0, 255, 136, 0.2);
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            border-radius: 4px;
+            color: #00ff88;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s ease;
+        }
+        
+        .game-button:hover {
+            background: rgba(0, 255, 136, 0.4);
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>Matrix Component Test</h1>
+    
+    <div class="test-info">
+        <h3>✨ Enhanced Matrix Component Features:</h3>
+        <ul>
+            <li><strong>Glassy Background:</strong> Semi-transparent with blur effect</li>
+            <li><strong>Multiple Animations:</strong> Wave → Pulse → Loader → Snake → Rain → Spiral</li>
+            <li><strong>Click to Cycle:</strong> Click the matrix to change animations</li>
+            <li><strong>Playable Snake Game:</strong> Right-click the matrix to open the game in a dialog box</li>
+            <li><strong>Game Mechanics:</strong> Use arrow keys to control the snake, collect food to grow and earn points</li>
+            <li><strong>Hover Effects:</strong> Enhanced glow and scale on hover</li>
+        </ul>
+        <p><em>Click the matrix to cycle through animations. Right-click to open the Snake Game in a dialog box!</em></p>
+    </div>
+    
+    <div class="matrix-container" title="Matrix Display - Click to change animation">
+        <div id="matrix-display" class="matrix-display"></div>
+    </div>
+    
+    <script src="../matrix.js"></script>
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Learning</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: #080b14;
+            color: #e2e8f0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden
+        }
+
+        .inet-banner {
+            background: rgba(245, 158, 11, 0.1);
+            border-bottom: 1px solid rgba(245, 158, 11, 0.25);
+            padding: 6px 16px;
+            font-size: 11px;
+            color: #fbbf24;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.02);
+            flex-shrink: 0
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px
+        }
+
+        .header-title {
+            font-size: 17px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #34d399, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text
+        }
+
+        .lang-sel {
+            background: rgba(52, 211, 153, 0.1);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #6ee7b7;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none
+        }
+
+        .lang-sel option {
+            background: #1a1f2e;
+            color: #e2e8f0
+        }
+
+        .custom-input {
+            display: none;
+            background: rgba(52, 211, 153, 0.08);
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            color: #e2e8f0;
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+            width: 130px
+        }
+
+        .custom-input::placeholder {
+            color: rgba(255, 255, 255, 0.3)
+        }
+
+        .close-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: 8px;
+            color: #f87171;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            font-size: 1.1rem
+        }
+
+        .close-btn:hover {
+            background: rgba(239, 68, 68, 0.2)
+        }
+
+        .mode-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0 18px;
+            flex-shrink: 0;
+            overflow-x: auto
+        }
+
+        .mode-tab {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.45);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap
+        }
+
+        .mode-tab:hover {
+            color: rgba(255, 255, 255, 0.7)
+        }
+
+        .mode-tab.active {
+            color: #34d399;
+            border-bottom-color: #34d399
+        }
+
+        .content-area {
+            flex: 1;
+            overflow: hidden;
+            position: relative
+        }
+
+        .mode-panel {
+            display: none;
+            height: 100%;
+            flex-direction: column
+        }
+
+        .mode-panel.active {
+            display: flex
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px
+        }
+
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 14px;
+            line-height: 1.6
+        }
+
+        .bubble.user {
+            background: rgba(96, 165, 250, 0.15);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            align-self: flex-end;
+            border-bottom-right-radius: 4px
+        }
+
+        .bubble.ai {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px
+        }
+
+        .trans-toggle {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #34d399;
+            cursor: pointer
+        }
+
+        .trans-text {
+            display: none;
+            margin-top: 6px;
+            padding: 8px;
+            background: rgba(52, 211, 153, 0.08);
+            border-radius: 8px;
+            font-size: 12px;
+            color: #6ee7b7;
+            border-left: 3px solid #34d399
+        }
+
+        .chat-input-area {
+            padding: 12px 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+            flex-shrink: 0
+        }
+
+        .chat-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 14px;
+            resize: none;
+            outline: none;
+            max-height: 100px;
+            transition: border-color 0.2s
+        }
+
+        .chat-input:focus {
+            border-color: rgba(52, 211, 153, 0.4)
+        }
+
+        .chat-input::placeholder {
+            color: rgba(255, 255, 255, 0.25)
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #34d399, #059669);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit
+        }
+
+        .send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(52, 211, 153, 0.3)
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            transform: none;
+            cursor: not-allowed
+        }
+
+        .panel-body {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            overflow-y: auto
+        }
+
+        .textarea {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 14px;
+            color: #e2e8f0;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.7;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s
+        }
+
+        .textarea:focus {
+            border-color: rgba(52, 211, 153, 0.4)
+        }
+
+        .textarea::placeholder {
+            color: rgba(255, 255, 255, 0.25)
+        }
+
+        .run-btn {
+            background: linear-gradient(135deg, rgba(52, 211, 153, 0.25), rgba(96, 165, 250, 0.2));
+            border: 1px solid rgba(52, 211, 153, 0.4);
+            color: #6ee7b7;
+            padding: 10px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            align-self: flex-start
+        }
+
+        .run-btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.1)
+        }
+
+        .run-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none
+        }
+
+        .result-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 16px;
+            flex: 1;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
+            min-height: 120px;
+            color: rgba(255, 255, 255, 0.35)
+        }
+
+        .result-box.loaded {
+            color: #e2e8f0
+        }
+
+        .vocab-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px
+        }
+
+        .vocab-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px;
+            transition: all 0.2s
+        }
+
+        .vocab-card:hover {
+            border-color: rgba(52, 211, 153, 0.3);
+            background: rgba(52, 211, 153, 0.05)
+        }
+
+        .v-word {
+            font-size: 15px;
+            font-weight: 700;
+            color: #34d399;
+            margin-bottom: 2px
+        }
+
+        .v-pron {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-bottom: 5px;
+            font-style: italic
+        }
+
+        .v-def {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 5px
+        }
+
+        .v-ex {
+            font-size: 11px;
+            color: rgba(96, 165, 250, 0.8);
+            font-style: italic;
+            border-left: 2px solid rgba(96, 165, 250, 0.4);
+            padding-left: 7px
+        }
+
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 18px
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center
+        }
+
+        .stat-val {
+            font-size: 28px;
+            font-weight: 700;
+            color: #34d399
+        }
+
+        .stat-lbl {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.45);
+            margin-top: 4px
+        }
+
+        .reset-btn {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            margin: 0 18px 18px;
+            transition: all 0.2s
+        }
+
+        .reset-btn:hover {
+            background: rgba(239, 68, 68, 0.2)
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 15px;
+            background: #34d399;
+            animation: blink 0.7s infinite;
+            vertical-align: middle
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.13);
+            border-radius: 3px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="inet-banner">📡 Requires internet connection — Groq API (`openai/gpt-oss-120b`)</div>
+    <div class="header">
+        <div class="header-left">
+            <div class="header-title">🌍 Language Learning</div>
+            <select class="lang-sel" id="targetLang" onchange="onLangChange(this)">
+                <option value="Spanish">🇪🇸 Spanish</option>
+                <option value="French">🇫🇷 French</option>
+                <option value="German">🇩🇪 German</option>
+                <option value="Japanese">🇯🇵 Japanese</option>
+                <option value="Mandarin">🇨🇳 Mandarin</option>
+                <option value="Hindi">🇮🇳 Hindi</option>
+                <option value="Arabic">🇸🇦 Arabic</option>
+                <option value="Portuguese">🇧🇷 Portuguese</option>
+                <option value="Custom">✏️ Custom...</option>
+            </select>
+            <input class="custom-input" id="customLang" placeholder="Language name..." />
+        </div>
+        <button class="close-btn" onclick="closePanel()">✕</button>
+    </div>
+    <div class="mode-tabs">
+        <div class="mode-tab active" onclick="switchMode('conversation',this)">💬 Free Conversation</div>
+        <div class="mode-tab" onclick="switchMode('translate',this)">🔄 Translate & Explain</div>
+        <div class="mode-tab" onclick="switchMode('grammar',this)">✅ Grammar Check</div>
+        <div class="mode-tab" onclick="switchMode('vocab',this)">📚 Vocabulary</div>
+        <div class="mode-tab" onclick="switchMode('progress',this)">📊 Progress</div>
+    </div>
+    <div class="content-area">
+        <div class="mode-panel active" id="panel-conversation">
+            <div class="chat-messages" id="chatMsgs">
+                <div class="bubble ai" style="background:rgba(52,211,153,0.06);border-color:rgba(52,211,153,0.2)">
+                    👋 <strong>Welcome!</strong> I'll reply in <span id="welcomeLang">Spanish</span>. Toggle translation
+                    below each reply.
+                </div>
+            </div>
+            <div class="chat-input-area">
+                <textarea class="chat-input" id="chatInput" placeholder="Type your message..." rows="2"
+                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}"></textarea>
+                <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send ↑</button>
+            </div>
+        </div>
+        <div class="mode-panel" id="panel-translate">
+            <div class="panel-body">
+                <label style="font-size:13px;color:rgba(255,255,255,0.5)">Text to translate and explain:</label>
+                <textarea class="textarea" id="transInput" placeholder="Enter a phrase or sentence..."
+                    rows="5"></textarea>
+                <button class="run-btn" id="transBtn" onclick="runTranslate()">🔄 Translate & Explain</button>
+                <div class="result-box" id="transResult">Translation will appear here...</div>
+            </div>
+        </div>
+        <div class="mode-panel" id="panel-grammar">
+            <div class="panel-body">
+                <label style="font-size:13px;color:rgba(255,255,255,0.5)">Sentence to grammar check:</label>
+                <textarea class="textarea" id="grammarInput" placeholder="Write a sentence in the target language..."
+                    rows="5"></textarea>
+                <button class="run-btn" id="grammarBtn" onclick="runGrammar()">✅ Check Grammar</button>
+                <div class="result-box" id="grammarResult">Corrections will appear here...</div>
+            </div>
+        </div>
+        <div class="mode-panel" id="panel-vocab">
+            <div class="panel-body">
+                <label style="font-size:13px;color:rgba(255,255,255,0.5)">Topic for 10 vocabulary words:</label>
+                <textarea class="textarea" id="vocabInput" placeholder="e.g., Food and cooking, Travel, Technology..."
+                    rows="3"></textarea>
+                <button class="run-btn" id="vocabBtn" onclick="runVocab()">📚 Build Vocabulary</button>
+                <div class="result-box" id="vocabResult" style="min-height:200px">Vocabulary cards will appear here...
+                </div>
+            </div>
+        </div>
+        <div class="mode-panel" id="panel-progress">
+            <div class="progress-stats">
+                <div class="stat-card">
+                    <div class="stat-val" id="sWords">0</div>
+                    <div class="stat-lbl">Words Practiced</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="sSent">0</div>
+                    <div class="stat-lbl">Sentences Corrected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="sMsgs">0</div>
+                    <div class="stat-lbl">Conversations</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-val" id="sTrans">0</div>
+                    <div class="stat-lbl">Translations</div>
+                </div>
+            </div>
+            <button class="reset-btn" onclick="resetStats()">🗑️ Reset Progress</button>
+        </div>
+    </div>
+    <script>
+        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
+        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        let busy = false;
+        let stats = JSON.parse(localStorage.getItem('ll_stats') || '{"w":0,"s":0,"m":0,"t":0}');
+
+        function getLang() {
+            const v = document.getElementById('targetLang').value;
+            return v === 'Custom' ? (document.getElementById('customLang').value || 'Spanish') : v;
+        }
+
+        function onLangChange(sel) {
+            document.getElementById('customLang').style.display = sel.value === 'Custom' ? 'block' : 'none';
+            document.getElementById('welcomeLang').textContent = getLang();
+        }
+
+        function switchMode(m, tab) {
+            document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + m).classList.add('active');
+            if (m === 'progress') refreshStats();
+        }
+
+
+
+        function getGroqError(xhr) {
+            try {
+                const payload = JSON.parse(xhr.responseText);
+                if (payload && payload.error) {
+                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
+                }
+            } catch (_) { }
+            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
+        }
+
+        function buildGroqPayload(messages, opts) {
+            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
+            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
+                payload.max_completion_tokens = payload.max_tokens;
+            }
+            delete payload.max_tokens;
+            if (payload.reasoning_effort == null) {
+                payload.reasoning_effort = 'medium';
+            }
+            return payload;
+        }
+
+        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        function stream(messages, onChunk, onDone, onErr) {
+            try {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', GROQ_API_URL, true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+                let pos = 0;
+                function parse() {
+                    const raw = xhr.responseText;
+                    if (raw.length <= pos) return;
+                    const nt = raw.slice(pos); pos = raw.length;
+                    nt.split('\n').forEach(line => {
+                        if (!line.startsWith('data: ')) return;
+                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
+                        try { const c = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (c) onChunk(c); } catch (_) { }
+                    });
+                }
+                xhr.onprogress = parse;
+                xhr.onload = () => {
+                    parse();
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        onDone && onDone();
+                        return;
+                    }
+                    onErr && onErr(getGroqError(xhr));
+                };
+                xhr.onerror = () => onErr && onErr('Network error');
+                xhr.ontimeout = () => onErr && onErr('Timeout');
+                xhr.timeout = 120000;
+                xhr.send(JSON.stringify(buildGroqPayload(messages, { max_tokens: 2500, temperature: 0.7 })));
+            } catch (e) { onErr && onErr(e.message); }
+        }
+
+        async function sendMsg() {
+            if (busy) return;
+            const inp = document.getElementById('chatInput');
+            const txt = inp.value.trim(); if (!txt) return;
+            const lang = getLang(); const msgs = document.getElementById('chatMsgs');
+            busy = true; document.getElementById('sendBtn').disabled = true; inp.value = '';
+            const ub = document.createElement('div'); ub.className = 'bubble user'; ub.textContent = txt; msgs.appendChild(ub);
+            const ab = document.createElement('div'); ab.className = 'bubble ai';
+            const atxt = document.createElement('div');
+            atxt.innerHTML = '<span class="streaming-cursor"></span>';
+            ab.appendChild(atxt); msgs.appendChild(ab); msgs.scrollTop = msgs.scrollHeight;
+            let full = '';
+            await stream([
+                { role: 'system', content: `You are a ${lang} tutor. Reply in ${lang} only. After your reply add "---EN---" then provide English translation. If user made errors add "---FIX---" then gentle explanation in English.` },
+                { role: 'user', content: txt }
+            ], (chunk) => {
+                full += chunk;
+                const main = full.split('---EN---')[0];
+                atxt.innerHTML = main.trim().replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>';
+                msgs.scrollTop = msgs.scrollHeight;
+            }, () => {
+                const cur = atxt.querySelector('.streaming-cursor'); if (cur) cur.remove();
+                const parts = full.split('---EN---');
+                atxt.innerHTML = (parts[0] || '').trim().replace(/\n/g, '<br>');
+                if (parts[1]) {
+                    const sub = parts[1].split('---FIX---');
+                    const enText = (sub[0] || '').trim();
+                    const fix = (sub[1] || '').trim();
+                    if (enText) {
+                        const tog = document.createElement('div'); tog.className = 'trans-toggle'; tog.textContent = '🔤 Show English';
+                        const tDiv = document.createElement('div'); tDiv.className = 'trans-text'; tDiv.innerHTML = enText.replace(/\n/g, '<br>');
+                        let on = false; tog.onclick = () => { on = !on; tDiv.style.display = on ? 'block' : 'none'; tog.textContent = on ? '🔤 Hide English' : '🔤 Show English'; };
+                        ab.appendChild(tog); ab.appendChild(tDiv);
+                    }
+                    if (fix) {
+                        const fd = document.createElement('div');
+                        fd.style.cssText = 'margin-top:8px;padding:8px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:12px;color:#fbbf24;border-left:2px solid #f59e0b';
+                        fd.innerHTML = '✏️ ' + fix.replace(/\n/g, '<br>'); ab.appendChild(fd);
+                    }
+                }
+                stats.m++; save();
+                busy = false; document.getElementById('sendBtn').disabled = false;
+            }, (err) => {
+                atxt.innerHTML = `<span style="color:#f87171">⚠️ ${err}</span>`;
+                busy = false; document.getElementById('sendBtn').disabled = false;
+            });
+        }
+
+        async function runTranslate() {
+            const inp = document.getElementById('transInput').value.trim(); if (!inp) return;
+            const lang = getLang(); const el = document.getElementById('transResult');
+            el.className = 'result-box loaded'; el.innerHTML = '<span class="streaming-cursor"></span>';
+            document.getElementById('transBtn').disabled = true;
+            let txt = '';
+            await stream([
+                { role: 'system', content: `You are a ${lang} language expert. Translate the text to ${lang}, then explain grammar and key vocabulary. Format: Translation: [text]\n\nGrammar Notes: [explanation]` },
+                { role: 'user', content: inp }
+            ], (c) => { txt += c; el.innerHTML = txt.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+                () => { const cur = el.querySelector('.streaming-cursor'); if (cur) cur.remove(); stats.t++; save(); document.getElementById('transBtn').disabled = false; },
+                (e) => { el.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`; document.getElementById('transBtn').disabled = false; });
+        }
+
+        async function runGrammar() {
+            const inp = document.getElementById('grammarInput').value.trim(); if (!inp) return;
+            const lang = getLang(); const el = document.getElementById('grammarResult');
+            el.className = 'result-box loaded'; el.innerHTML = '<span class="streaming-cursor"></span>';
+            document.getElementById('grammarBtn').disabled = true;
+            let txt = '';
+            await stream([
+                { role: 'system', content: `You are a ${lang} grammar expert. Check for errors. List each error with the original, correction, and a gentle explanation. End encouragingly.` },
+                { role: 'user', content: `Check this ${lang} text:\n"${inp}"` }
+            ], (c) => { txt += c; el.innerHTML = txt.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+                () => { const cur = el.querySelector('.streaming-cursor'); if (cur) cur.remove(); stats.s++; save(); document.getElementById('grammarBtn').disabled = false; },
+                (e) => { el.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`; document.getElementById('grammarBtn').disabled = false; });
+        }
+
+        async function runVocab() {
+            const topic = document.getElementById('vocabInput').value.trim(); if (!topic) return;
+            const lang = getLang(); const el = document.getElementById('vocabResult');
+            el.className = 'result-box loaded'; el.innerHTML = '<span class="streaming-cursor"></span>';
+            document.getElementById('vocabBtn').disabled = true;
+            let full = '';
+            await stream([
+                { role: 'system', content: `You are a ${lang} tutor. Return ONLY a JSON array of 10 objects: [{"word":"${lang} word","pronunciation":"phonetic","definition":"English meaning","example":"${lang} example sentence"}]. No extra text.` },
+                { role: 'user', content: `Topic: ${topic}` }
+            ], (c) => { full += c; },
+                () => {
+                    try {
+                        const js = full.match(/\[[\s\S]*\]/)?.[0];
+                        const words = JSON.parse(js);
+                        el.innerHTML = '';
+                        const grid = document.createElement('div'); grid.className = 'vocab-grid';
+                        words.forEach(w => {
+                            const card = document.createElement('div'); card.className = 'vocab-card';
+                            card.innerHTML = `<div class="v-word">${w.word}</div><div class="v-pron">/${w.pronunciation}/</div><div class="v-def">${w.definition}</div><div class="v-ex">${w.example}</div>`;
+                            grid.appendChild(card);
+                        });
+                        el.appendChild(grid);
+                        stats.w += 10; save();
+                    } catch (e) { el.innerHTML = '<pre style="white-space:pre-wrap;font-size:12px">' + full + '</pre>'; }
+                    document.getElementById('vocabBtn').disabled = false;
+                }, (e) => { el.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`; document.getElementById('vocabBtn').disabled = false; });
+        }
+
+        function save() { localStorage.setItem('ll_stats', JSON.stringify(stats)); }
+        function refreshStats() { document.getElementById('sWords').textContent = stats.w; document.getElementById('sSent').textContent = stats.s; document.getElementById('sMsgs').textContent = stats.m; document.getElementById('sTrans').textContent = stats.t; }
+        function resetStats() { stats = { w: 0, s: 0, m: 0, t: 0 }; save(); refreshStats(); }
+
+        window.closePanel = function () {
+            if (window.parent && window.parent !== window) { try { window.parent.postMessage({ action: 'closeLanguageLearning' }, '*'); if (typeof window.parent.closeLanguageLearning === 'function') window.parent.closeLanguageLearning(); } catch (e) { window.close(); } } else { window.close(); }
+        };
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
+    </script>
+</body>
+
+</html>
