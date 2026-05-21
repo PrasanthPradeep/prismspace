@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const rootDir = process.cwd();
 const legacyDir = path.join(rootDir, 'legacy-static');
+const generatedScriptsDir = path.join(rootDir, 'public', 'legacy-page-scripts');
 
 const ensureDir = (dir) => {
   fs.mkdirSync(dir, { recursive: true });
@@ -71,9 +72,33 @@ const extractDocument = (filePath, fallbackTitle) => {
   };
 };
 
+const toScriptFileName = (value) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const externalizeInlineScripts = (doc, scriptBaseName) => {
+  if (!doc.scripts.length) {
+    return doc;
+  }
+
+  const generatedExternalScripts = doc.scripts.map((scriptContent, index) => {
+    const fileName = `${toScriptFileName(scriptBaseName)}-${index}.js`;
+    fs.writeFileSync(path.join(generatedScriptsDir, fileName), scriptContent.trimStart());
+    return `/legacy-page-scripts/${fileName}`;
+  });
+
+  return {
+    ...doc,
+    scripts: [],
+    externalScripts: [...doc.externalScripts, ...generatedExternalScripts],
+  };
+};
+
 const writeComponent = ({ sourceFile, outputDir, slug, importPath, documentClassName, bodyClassName }) => {
   const componentName = slugToPascal(slug);
-  const doc = extractDocument(sourceFile, componentName);
+  const doc = externalizeInlineScripts(extractDocument(sourceFile, componentName), `${path.basename(outputDir)}-${slug}`);
   const componentPath = path.join(outputDir, `${componentName}.jsx`);
   const componentSource = `import LegacyHtmlPage from '${importPath}';\n\nconst page = ${JSON.stringify(
     {
@@ -91,7 +116,9 @@ const writeComponent = ({ sourceFile, outputDir, slug, importPath, documentClass
 
 const writeRoute = ({ routeDir, componentImport, componentName, title }) => {
   ensureDir(routeDir);
-  const pagePath = path.join(routeDir, 'page.jsx');
+  const jsxPagePath = path.join(routeDir, 'page.jsx');
+  const pagePath = path.join(routeDir, 'page.tsx');
+  fs.rmSync(jsxPagePath, { force: true });
   const pageSource = `import ${componentName}, { title } from '${componentImport}';\n\nexport const metadata = {\n  title,\n};\n\nexport default function Page() {\n  return <${componentName} />;\n}\n`;
   fs.writeFileSync(pagePath, pageSource);
 };
@@ -122,9 +149,10 @@ const writeHome = () => {
   );
 
   fs.writeFileSync(
-    path.join(rootDir, 'app', 'page.jsx'),
-    `import HomePage from '@/components/home/HomePage';\n\nexport default function Page() {\n  return <HomePage />;\n}\n`,
+    path.join(rootDir, 'app', 'page.tsx'),
+    `import ExtensionStorageBootstrap from '@/components/extension/ExtensionStorageBootstrap';\nimport HomePage from '@/components/home/HomePage';\n\nexport default function Page() {\n  return (\n    <>\n      <ExtensionStorageBootstrap />\n      <HomePage />\n    </>\n  );\n}\n`,
   );
+  fs.rmSync(path.join(rootDir, 'app', 'page.jsx'), { force: true });
 };
 
 const writeCollection = ({ sourceDirName, appDirName, componentDirName, documentClassName, bodyClassName }) => {
@@ -143,7 +171,9 @@ const writeCollection = ({ sourceDirName, appDirName, componentDirName, document
       sourceFile: path.join(sourceDir, file),
       outputDir: componentDir,
       slug,
-      importPath: '@/components/legacy/LegacyHtmlPage',
+      importPath: componentDirName === 'dev-tools'
+        ? '@/components/dev-tools/AuraLegacyToolPage'
+        : '@/components/legacy/LegacyHtmlPage',
       documentClassName,
       bodyClassName,
     });
@@ -161,7 +191,7 @@ const writeStandalone = ({ sourceFileName, appRouteName, componentDirName, compo
   const componentDir = path.join(rootDir, 'components', componentDirName);
   ensureDir(componentDir);
 
-  const doc = extractDocument(path.join(legacyDir, sourceFileName), componentName);
+  const doc = externalizeInlineScripts(extractDocument(path.join(legacyDir, sourceFileName), componentName), `${componentDirName}-${appRouteName}`);
   const componentPath = path.join(componentDir, `${componentName}.jsx`);
   const page = {
     documentClassName,
@@ -185,6 +215,9 @@ const writeStandalone = ({ sourceFileName, appRouteName, componentDirName, compo
     title: doc.title,
   });
 };
+
+fs.rmSync(generatedScriptsDir, { recursive: true, force: true });
+ensureDir(generatedScriptsDir);
 
 writeHome();
 writeStandalone({
