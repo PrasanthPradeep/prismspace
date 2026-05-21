@@ -1,7 +1,33 @@
 {
-  "extends": ["next/core-web-vitals"],
+  "ignorePatterns": [
+    "legacy-static/**",
+    "public/**",
+    "app/**",
+    "next.config.js",
+    "scripts/**",
+    ".output/**"
+  ],
+  "env": {
+    "browser": true,
+    "es2022": true,
+    "webextensions": true
+  },
+  "globals": {
+    "chrome": "readonly",
+    "defineBackground": "readonly"
+  },
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
-    "@next/next/google-font-display": "off",
-    "@next/next/no-page-custom-font": "off"
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": "off"
   }
 }
