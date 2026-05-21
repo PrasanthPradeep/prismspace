@@ -8,12 +8,11 @@
 ## What is Prism Space?
 
 Prism Space is a customizable browser workspace built for the modern web.
-
-Access useful tools, AI utilities, productivity features, developer resources, and curated experiences — all from one beautiful start page.
+This repository now ships Prism Space as a **WXT browser extension (Manifest V3)** powered by React.
 
 ---
 
-# Contribution Development
+# Extension Development
 
 ## Run Locally
 
@@ -22,40 +21,36 @@ pnpm install
 pnpm run dev
 ```
 
-Open `http://localhost:3000`.
+Then load the generated development extension in your browser from WXT output (Chrome MV3 output path is shown in the terminal).
 
 ## Build
 
 ```bash
 pnpm run build
-pnpm run start
+pnpm run zip
 ```
 
 ## Structure
 
-- `app/` - Next.js App Router pages.
+- `entrypoints/` - extension entry points (new tab, popup, options, sidepanel, background, tool pages).
 - `components/home/` - homepage JSX wrapper.
-- `components/dev-tools/` - Dev Space tools converted to `.jsx` route components.
-- `components/clock-previews/` - clock preview iframe pages converted to `.jsx`.
+- `components/dev-tools/` - Dev Space tool pages.
+- `components/clock-previews/` - clock preview pages.
 - `components/config/` - config/status helper page.
 - `components/legacy/` - runtime bridge for preserved vanilla HTML behavior.
-- `public/` - served assets, fonts, JSON, and legacy browser scripts.
-- `styles/` - global homepage CSS.
+- `src/extension/` - shared extension runtime helpers (rendering, storage bridge).
+- `public/` - extension assets, fonts, JSON data, and legacy scripts.
+- `styles/` - global and Aura CSS.
 - `legacy-static/` - archived original HTML/CSS/JS source files.
-- `scripts/migrate-static-to-next.mjs` - regenerates JSX wrappers from `legacy-static/`.
 
-## Compatibility Routes
+## Extension Pages
 
-Existing static paths are preserved through Next rewrites:
+The extension preserves existing static page paths as extension pages:
 
 - `/index.html` -> `/`
 - `/config-loader.html` -> `/config-loader`
 - `/dev-space/*.html` -> `/dev-space/*`
 - `/clock-previews/*.html` -> `/clock-previews/*`
-
-## AI Tools
-
-The AI tools keep their original browser behavior and proxy/API wiring from the static version. The config/status helper is available at `/config-loader`.
 
 ---
 

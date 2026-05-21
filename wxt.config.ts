@@ -1,0 +1,36 @@
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'wxt';
+
+const rootDir = fileURLToPath(new URL('.', import.meta.url));
+
+export default defineConfig({
+  modules: ['@wxt-dev/module-react'],
+  srcDir: '.',
+  manifest: {
+    name: 'Prism Space',
+    short_name: 'PrismSpace',
+    description: 'Prism Space browser extension workspace.',
+    permissions: ['storage', 'sidePanel'],
+    action: {
+      default_title: 'Prism Space',
+      default_popup: 'popup.html'
+    },
+    options_ui: {
+      page: 'options.html',
+      open_in_tab: true
+    },
+    side_panel: {
+      default_path: 'sidepanel.html'
+    },
+    chrome_url_overrides: {
+      newtab: 'index.html'
+    }
+  },
+  vite: () => ({
+    resolve: {
+      alias: {
+        '@': rootDir
+      }
+    }
+  })
+});

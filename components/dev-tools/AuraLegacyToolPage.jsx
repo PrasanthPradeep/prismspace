@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import LegacyHtmlPage from '@/components/legacy/LegacyHtmlPage';
+import { getStoredTheme, setStoredTheme } from '@/src/extension/storage';
 import '@/styles/aura-tokens.css';
 import '@/styles/aura-dev-tools.css';
 
@@ -14,14 +15,9 @@ function stripLegacyToolStyles(markup = '') {
     .replace(/<link[^>]+api\.fontshare[^>]*>\s*/gi, '');
 }
 
-function getAuraTheme() {
-  if (typeof window === 'undefined') return 'light';
-  return localStorage.getItem(AURA_THEME_KEY) || 'light';
-}
-
-function setAuraTheme(theme) {
+async function setAuraTheme(theme) {
   document.documentElement.dataset.theme = theme;
-  localStorage.setItem(AURA_THEME_KEY, theme);
+  await setStoredTheme(theme);
 }
 
 function injectThemeToggle() {
@@ -81,9 +77,9 @@ function createThemeToggle() {
   toggle.className = 'aura-theme-toggle';
   toggle.setAttribute('aria-label', 'Toggle light/dark theme');
   toggle.title = 'Toggle theme';
-  toggle.addEventListener('click', () => {
+  toggle.addEventListener('click', async () => {
     const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-    setAuraTheme(next);
+    await setAuraTheme(next);
   });
   return toggle;
 }
@@ -97,7 +93,9 @@ export default function AuraLegacyToolPage({
   ...rest
 }) {
   useEffect(() => {
-    setAuraTheme(getAuraTheme());
+    getStoredTheme().then((theme) => {
+      document.documentElement.dataset.theme = theme || localStorage.getItem(AURA_THEME_KEY) || 'light';
+    });
 
     const timer = window.setTimeout(injectThemeToggle, 0);
 
