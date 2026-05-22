@@ -1,0 +1,1 @@
+function updateTime(){const now=new Date(),hours=String(now.getHours()).padStart(2,'0'),minutes=String(now.getMinutes()).padStart(2,'0');document.getElementById('clock').textContent=`${hours}:${minutes}`}updateTime();setInterval(updateTime,1000);

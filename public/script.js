@@ -1526,10 +1526,20 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 card.className = 'background-card';
                 card.setAttribute('data-bg', wallpaper);
                 card.onclick = () => selectBackground(wallpaper);
-                card.innerHTML = `
-                    <img src="${wallpaper}" class="background-preview-img" alt="Custom ${index + 1}">
-                    <button class="btn-delete-bg" onclick="deleteCustomWallpaper(event, ${index})" title="Delete">×</button>
-                `;
+                const img = document.createElement('img');
+                img.src = wallpaper;
+                img.className = 'background-preview-img';
+                img.alt = `Custom ${index + 1}`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete-bg';
+                deleteBtn.type = 'button';
+                deleteBtn.title = 'Delete';
+                deleteBtn.textContent = '×';
+                deleteBtn.addEventListener('click', (event) => deleteCustomWallpaper(event, index));
+
+                card.appendChild(img);
+                card.appendChild(deleteBtn);
                 backgroundGrid.appendChild(card);
             });
         }
@@ -1610,10 +1620,20 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 card.className = 'background-card';
                 card.setAttribute('data-bg', bgData);
                 card.onclick = () => selectAnimatedBackground(bgData);
-                card.innerHTML = `
-                    <img src="${bgData}" class="animated-background-preview" alt="Custom GIF ${index + 1}">
-                    <button class="btn-delete-bg" onclick="deleteCustomAnimatedBg(event, ${index})" title="Delete">×</button>
-                `;
+                const img = document.createElement('img');
+                img.src = bgData;
+                img.className = 'animated-background-preview';
+                img.alt = `Custom GIF ${index + 1}`;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn-delete-bg';
+                deleteBtn.type = 'button';
+                deleteBtn.title = 'Delete';
+                deleteBtn.textContent = '×';
+                deleteBtn.addEventListener('click', (event) => deleteCustomAnimatedBg(event, index));
+
+                card.appendChild(img);
+                card.appendChild(deleteBtn);
                 animatedBgGrid.appendChild(card);
             });
         }

@@ -13,7 +13,7 @@ export default defineConfig({
     permissions: ['storage', 'sidePanel'],
     action: {
       default_title: 'Prism Space',
-      default_popup: 'popup.html'
+        default_popup: 'popup.html'
     },
     options_ui: {
       page: 'options.html',
@@ -26,8 +26,10 @@ export default defineConfig({
       newtab: 'index.html'
     }
   },
-  vite: () => ({
+  vite: (config) => ({
+    ...config,
     resolve: {
+      ...config.resolve,
       alias: {
         '@': rootDir
       }

@@ -17,10 +17,15 @@ function appendExternalScript(src, nodes) {
 }
 
 function appendInlineScript(content, nodes) {
-  const script = document.createElement('script');
-  script.text = content;
-  document.body.appendChild(script);
-  nodes.push(script);
+  // Inline script execution is blocked by MV3 CSP in extension contexts.
+  // We intentionally skip injecting inline script text to avoid CSP errors.
+  // Inline scripts must be converted to external files (see repo TODOs).
+  // Keep a no-op placeholder so callers can push a node if they expect one.
+  const placeholder = document.createElement('script');
+  placeholder.type = 'application/javascript';
+  // Do not set .text or src to avoid CSP violations.
+  document.body.appendChild(placeholder);
+  nodes.push(placeholder);
 }
 
 export default function LegacyHtmlPage({
@@ -64,6 +69,7 @@ export default function LegacyHtmlPage({
     const nodes = [];
 
     async function runScripts() {
+      // Load allowed external scripts (served from the extension package).
       for (const src of externalScripts) {
         if (cancelled) {
           return;
@@ -72,11 +78,9 @@ export default function LegacyHtmlPage({
         await appendExternalScript(src, nodes);
       }
 
-      if (cancelled) {
-        return;
-      }
-
-      scripts.forEach((content) => appendInlineScript(content, nodes));
+      // Do NOT inject inline script text here — MV3 popup/context blocks it.
+      // Inline script bodies should be moved to external files under `public/`
+      // and referenced via `externalScripts` so they run under `script-src 'self'`.
       document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
     }
 
@@ -88,10 +92,11 @@ export default function LegacyHtmlPage({
     };
   }, [externalScripts, scripts]);
 
+  // Strip inline event handlers (onclick, onmouseover, etc.) from bodyMarkup
+  // because attributes with inline JS are blocked by extension CSP.
+  const sanitizedBody = bodyMarkup.replace(/\son\w+=["'][^"']*["']/gi, '');
+
   return (
-    <div
-      suppressHydrationWarning
-      dangerouslySetInnerHTML={{ __html: `${headMarkup}\n${bodyMarkup}` }}
-    />
+    <div suppressHydrationWarning dangerouslySetInnerHTML={{ __html: `${headMarkup}\n${sanitizedBody}` }} />
   );
 }
