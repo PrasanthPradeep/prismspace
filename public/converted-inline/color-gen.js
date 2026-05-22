@@ -102,4 +102,9 @@ function __attach_color_gen_listeners() {
     const exportPaletteBtn = document.getElementById('exportPaletteBtn'); if (exportPaletteBtn) exportPaletteBtn.addEventListener('click', exportColorPalette);
 }
 
-document.addEventListener('DOMContentLoaded', function() { loadColorHistory(); generateRandomColors(); setTimeout(initColorPicker, 50); __attach_color_gen_listeners(); });
+function closeColorGenPanel() { history.back(); }
+
+loadColorHistory();
+generateRandomColors();
+setTimeout(initColorPicker, 50);
+__attach_color_gen_listeners();

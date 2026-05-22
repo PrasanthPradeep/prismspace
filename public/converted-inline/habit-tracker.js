@@ -1,0 +1,166 @@
+
+        const STORAGE_KEY = "prism.habits.v1";
+        const icons = ["book","bolt","heart","drop","brain","bicycle","leaf","moon","sun","music","code","pen","dumbbell","cup","walk","home","spark","smile","shield","target"];
+        const iconSvg = {
+            book:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 0-3 3V4Z"/></svg>',
+            bolt:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="m13 2-8 11h5l-1 9 8-11h-5z"/></svg>',
+            heart:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 21s-7-4.5-9-9.5C1.5 7 4 4 7.5 4c2 0 3.3 1 4.5 2.5C13.2 5 14.5 4 16.5 4 20 4 22.5 7 21 11.5 19 16.5 12 21 12 21"/></svg>',
+            drop:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2s6 7 6 11a6 6 0 1 1-12 0c0-4 6-11 6-11"/></svg>',
+            brain:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="9" cy="8" r="4" fill="currentColor"/><circle cx="15" cy="8" r="4" fill="currentColor"/><rect x="7" y="10" width="10" height="10" rx="5" fill="currentColor"/></svg>',
+            bicycle:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="6" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 18l4-8h4l4 8M10 10l-2-4h4" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+            leaf:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M20 4c-9 0-14 5-14 11a5 5 0 0 0 5 5c6 0 9-5 9-16"/><path d="M7 17c4-1 7-4 9-8" fill="none" stroke="#0a0d12" stroke-width="1.5"/></svg>',
+            moon:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M14 2a9 9 0 1 0 8 14A10 10 0 1 1 14 2"/></svg>',
+            sun:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="4" fill="currentColor"/><g stroke="currentColor" stroke-width="2"><path d="M12 1v4M12 19v4M1 12h4M19 12h4M4.2 4.2l2.8 2.8M17 17l2.8 2.8M4.2 19.8 7 17M17 7l2.8-2.8"/></g></svg>',
+            music:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M15 3v11.5a3.5 3.5 0 1 1-2-3.1V6l8-2v8.5a3.5 3.5 0 1 1-2-3.1V2z"/></svg>',
+            code:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="m8 7-5 5 5 5 1.5-1.5L6 12l3.5-3.5zM16 7l-1.5 1.5L18 12l-3.5 3.5L16 17l5-5zM13 4h2l-4 16H9z"/></svg>',
+            pen:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="m3 17.3 11-11 3.7 3.7-11 11H3zM14 3l3 3 1.3-1.3a1.5 1.5 0 0 0 0-2.1L17.4 1.7a1.5 1.5 0 0 0-2.1 0z"/></svg>',
+            dumbbell:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M2 9h3v6H2zM6 7h3v10H6zM10 10h4v4h-4zM15 7h3v10h-3zM19 9h3v6h-3z"/></svg>',
+            cup:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M5 5h11v6a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zm11 1h3v2a3 3 0 0 1-3 3zM8 18h6v2H8z"/></svg>',
+            walk:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="4" r="2" fill="currentColor"/><path fill="currentColor" d="m11 7 3 2 1 4-2 .5-.8-2.8-1.6 1.3V20H8v-6l2-4z"/></svg>',
+            home:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 3 3 10h2v10h5v-6h4v6h5V10h2z"/></svg>',
+            spark:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="m12 2 2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z"/></svg>',
+            smile:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><path d="M8 14c1 1.5 2.5 2 4 2s3-.5 4-2" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+            shield:'<svg viewBox="0 0 24 24" width="20" height="20"><path fill="currentColor" d="M12 2 5 5v6c0 5 3 9 7 11 4-2 7-6 7-11V5z"/></svg>',
+            target:'<svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>'
+        };
+        let habits = loadHabits();
+        let activeIcon = icons[0];
+        let draggedId = null;
+        const today = dateKey(new Date());
+
+        function loadHabits(){ try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
+        function saveHabits(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(habits)); }
+        function uid(){ return Math.random().toString(36).slice(2, 10); }
+        function dateKey(date){ return date.toISOString().slice(0,10); }
+        function startOfWeek(date){ const copy=new Date(date); const day=(copy.getDay()+6)%7; copy.setDate(copy.getDate()-day); copy.setHours(0,0,0,0); return copy; }
+        function weekKey(date){ return dateKey(startOfWeek(date)); }
+        function completionsOnDate(habit, key){ return habit.history[key] || 0; }
+        function hitTarget(habit, key=today){
+            const value = completionsOnDate(habit, key);
+            return habit.targetType === "daily" ? value >= 1 : value >= habit.targetCount;
+        }
+        function streaks(habit){
+            let current=0,best=0; let cursor=new Date(); cursor.setHours(0,0,0,0);
+            const keys = Object.keys(habit.history).sort();
+            if (habit.targetType === "daily") {
+                while (hitTarget(habit, dateKey(cursor))) { current += 1; cursor.setDate(cursor.getDate() - 1); }
+                let run=0; keys.forEach((key)=>{ if ((habit.history[key]||0)>=1) { run += 1; best=Math.max(best,run); } else run=0; });
+            } else {
+                const weeks={}; keys.forEach((key)=>{ const wk=weekKey(new Date(key)); weeks[wk]=(weeks[wk]||0)+(habit.history[key]||0); });
+                let weekCursor = startOfWeek(new Date());
+                while ((weeks[dateKey(weekCursor)] || 0) >= habit.targetCount) { current += 1; weekCursor.setDate(weekCursor.getDate() - 7); }
+                let run=0; Object.keys(weeks).sort().forEach((key)=>{ if (weeks[key] >= habit.targetCount) { run += 1; best=Math.max(best,run); } else run=0; });
+            }
+            return { current, best };
+        }
+        function addCompletion(habitId){
+            const habit = habits.find((entry)=>entry.id===habitId); if (!habit) return;
+            habit.history[today] = (habit.history[today] || 0) + 1;
+            saveHabits(); render();
+        }
+        function renderIcons(){
+            const root = document.getElementById("iconGrid"); root.innerHTML = "";
+            icons.forEach((icon)=>{ const button=document.createElement("button"); button.className="icon-btn" + (icon===activeIcon ? " active" : ""); button.innerHTML=iconSvg[icon]; button.onclick=()=>{ activeIcon=icon; renderIcons(); }; root.appendChild(button); });
+        }
+        function renderHabits(){
+            const list=document.getElementById("habitList"); list.innerHTML="";
+            document.getElementById("todayLabel").textContent = new Date().toLocaleDateString(undefined,{weekday:"long", month:"short", day:"numeric"});
+            document.getElementById("emptyState").style.display = habits.length ? "none" : "block";
+            habits.forEach((habit)=>{
+                const stat = streaks(habit);
+                const card=document.createElement("div");
+                card.className="habit-card";
+                card.draggable=true;
+                card.dataset.id = habit.id;
+                card.innerHTML = `
+                    <div class="habit-icon" style="background:${habit.color}22; color:${habit.color};">${iconSvg[habit.icon]}</div>
+                    <div>
+                        <strong>${habit.name}</strong>
+                        <div class="small" style="margin-top:4px;">Current ${stat.current} | Best ${stat.best} | ${habit.targetType === "daily" ? "Daily" : habit.targetCount + " / week"}</div>
+                    </div>
+                    <div class="row">
+                        <button class="hit-btn ${hitTarget(habit) ? "done" : ""}" data-hit="${habit.id}">${hitTarget(habit) ? "Done" : "+"}</button>
+                        <button data-detail="${habit.id}">View</button>
+                    </div>`;
+                card.addEventListener("dragstart", ()=>{ draggedId = habit.id; card.classList.add("dragging"); });
+                card.addEventListener("dragend", ()=>{ draggedId = null; card.classList.remove("dragging"); });
+                card.addEventListener("dragover", (e)=>e.preventDefault());
+                card.addEventListener("drop", ()=>reorderHabit(habit.id));
+                card.querySelector("[data-hit]").onclick=()=>addCompletion(habit.id);
+                card.querySelector("[data-detail]").onclick=()=>openDetail(habit.id);
+                list.appendChild(card);
+            });
+        }
+        function reorderHabit(targetId){
+            if (!draggedId || draggedId === targetId) return;
+            const from = habits.findIndex((h)=>h.id===draggedId);
+            const to = habits.findIndex((h)=>h.id===targetId);
+            const [moved] = habits.splice(from,1);
+            habits.splice(to,0,moved);
+            saveHabits(); render();
+        }
+        function renderHeatmap(hostId, habit){
+            const now = new Date();
+            const svg = ['<svg viewBox="0 0 420 120" width="100%" height="120">'];
+            for (let i = 29; i >= 0; i -= 1) {
+                const date = new Date(now); date.setDate(now.getDate() - i);
+                const key = dateKey(date); const value = completionsOnDate(habit, key);
+                const intensity = Math.min(1, value / Math.max(1, habit.targetType === "daily" ? 1 : habit.targetCount));
+                const fill = value ? `rgba(34,197,94,${0.18 + intensity * 0.72})` : "rgba(255,255,255,0.05)";
+                const x = (29 - i) % 10 * 40 + 4; const y = Math.floor((29 - i) / 10) * 38 + 4;
+                svg.push(`<rect x="${x}" y="${y}" width="28" height="28" rx="6" fill="${fill}" stroke="rgba(255,255,255,0.08)"><title>${key}: ${value}</title></rect>`);
+            }
+            svg.push("</svg>");
+            document.getElementById(hostId).innerHTML = svg.join("");
+        }
+        function renderWeeklyChart(){
+            const root=document.getElementById("weeklyChart"); root.innerHTML="";
+            const start = startOfWeek(new Date());
+            habits.forEach((habit)=>{
+                const total = Array.from({length:7}, (_, i)=>{ const day=new Date(start); day.setDate(start.getDate()+i); return completionsOnDate(habit, dateKey(day)); }).reduce((sum, n)=>sum+n,0);
+                const group=document.createElement("div"); group.className="bar-group";
+                const bar=document.createElement("div"); bar.className="bar"; bar.style.height = Math.max(8, total * 14) + "px"; bar.style.background = habit.color;
+                group.appendChild(bar);
+                group.innerHTML += `<div class="small">${habit.name}</div>`;
+                root.appendChild(group);
+            });
+        }
+        function openDetail(id){
+            const habit = habits.find((entry)=>entry.id===id); if (!habit) return;
+            const stat = streaks(habit);
+            const historyKeys = Object.keys(habit.history).sort().reverse().slice(0, 30);
+            document.getElementById("detailTitle").textContent = habit.name;
+            document.getElementById("detailMeta").textContent = `Completion rate: ${completionRate(habit)}% | Longest streak: ${stat.best}`;
+            document.getElementById("detailHistory").innerHTML = historyKeys.map((key)=>`<div class="small">${key} - ${habit.history[key]} completions</div>`).join("") || '<div class="small">No history yet.</div>';
+            renderHeatmap("detailHeatmap", habit);
+            document.getElementById("detailModal").classList.add("show");
+        }
+        function completionRate(habit){
+            const days = 30; let hits = 0;
+            for (let i=0;i<days;i+=1){ const d=new Date(); d.setDate(d.getDate()-i); if (hitTarget(habit, dateKey(d))) hits += 1; }
+            return Math.round((hits / days) * 100);
+        }
+        function render(){
+            renderHabits();
+            renderWeeklyChart();
+            if (habits[0]) renderHeatmap("heatmapHost", habits[0]); else document.getElementById("heatmapHost").innerHTML = '<div class="small">Add a habit to see heatmaps.</div>';
+        }
+        document.getElementById("addHabitBtn").onclick = () => {
+            const name = document.getElementById("habitName").value.trim();
+            if (!name) return;
+            habits.push({
+                id: uid(),
+                name,
+                icon: activeIcon,
+                targetType: document.getElementById("targetType").value,
+                targetCount: Number(document.getElementById("targetCount").value) || 1,
+                color: document.getElementById("habitColor").value,
+                history: {}
+            });
+            document.getElementById("habitName").value = "";
+            saveHabits(); render();
+        };
+        document.getElementById("closeDetailBtn").onclick = () => document.getElementById("detailModal").classList.remove("show");
+        renderIcons();
+        render();
+    

@@ -1,15 +1,84 @@
 import AuraLegacyToolPage from '@/components/dev-tools/AuraLegacyToolPage';
 
 const page = {
-  "documentClassName": "legacy-tool-document",
-  "bodyClassName": "legacy-tool-route",
-  "title": "Bookmark Manager",
-  "headMarkup": "<style>\n        :root { --bg:#0b0e13; --panel:#121821; --border:#283241; --text:#f8fafc; --muted:#94a3b8; --accent:#22c55e; }\n        * { box-sizing:border-box; }\n        body { margin:0; font-family:\"Segoe UI\",sans-serif; color:var(--text); background:radial-gradient(circle at top,#173145 0%,var(--bg) 40%); }\n        .app { padding:24px; display:grid; gap:20px; }\n        .grid { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }\n        .panel { background:rgba(18,24,33,.94); border:1px solid var(--border); border-radius:18px; padding:18px; }\n        h1,h2,h3,p { margin:0; }\n        .row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }\n        .stack { display:grid; gap:12px; }\n        input, textarea, button, select { width:100%; font:inherit; color:inherit; background:#0f141b; border:1px solid var(--border); border-radius:12px; padding:10px 12px; }\n        textarea { min-height:90px; resize:vertical; }\n        button { cursor:pointer; width:auto; }\n        .primary { background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.42); }\n        .small { font-size:13px; color:var(--muted); }\n        .filters { display:grid; grid-template-columns:1fr 180px; gap:12px; }\n        .bookmarks { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:16px; }\n        .card { background:#0f141b; border:1px solid var(--border); border-radius:16px; padding:14px; display:grid; gap:10px; }\n        .card:hover { border-color:#3a4658; }\n        .head { display:grid; grid-template-columns:40px 1fr auto; gap:12px; align-items:center; }\n        .favicon, .initial { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:#1a2330; overflow:hidden; font-weight:700; }\n        .tags { display:flex; flex-wrap:wrap; gap:8px; }\n        .tag { padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); font-size:12px; color:var(--muted); }\n        .empty { text-align:center; padding:40px 18px; color:var(--muted); border:1px dashed var(--border); border-radius:16px; }\n        @media (max-width: 940px) { .grid, .filters { grid-template-columns:1fr; } }\n    </style>",
-  "bodyMarkup": "<div class=\"app\">\n        <div>\n            <h1>Bookmark Manager</h1>\n            <p class=\"small\" style=\"margin-top:8px;\">Save, tag, search, import, and export local bookmarks. Works offline except favicons.</p>\n        </div>\n        <div class=\"grid\">\n            <section class=\"panel stack\">\n                <h2>Add Bookmark</h2>\n                <input id=\"urlInput\" placeholder=\"https://example.com\">\n                <input id=\"titleInput\" placeholder=\"Title\">\n                <input id=\"tagsInput\" placeholder=\"tags, separated, by commas\">\n                <textarea id=\"notesInput\" placeholder=\"Notes\"></textarea>\n                <div class=\"row\">\n                    <button id=\"autofillBtn\">Autofill title</button>\n                    <button id=\"addBtn\" class=\"primary\">Add bookmark</button>\n                </div>\n                <p id=\"addMessage\" class=\"small\"></p>\n                <hr style=\"border-color:var(--border); width:100%;\">\n                <h3>Bulk Import</h3>\n                <textarea id=\"bulkInput\" placeholder=\"Paste one URL per line\"></textarea>\n                <div class=\"row\">\n                    <button id=\"bulkAddBtn\">Bulk add</button>\n                    <button id=\"exportJsonBtn\">Export JSON</button>\n                    <button id=\"exportHtmlBtn\">Export HTML</button>\n                </div>\n            </section>\n\n            <section class=\"panel\">\n                <div class=\"filters\">\n                    <input id=\"searchInput\" placeholder=\"Search title, URL, or notes\">\n                    <select id=\"tagFilter\"><option value=\"\">All tags</option></select>\n                </div>\n                <div class=\"bookmarks\" id=\"bookmarks\"></div>\n                <div id=\"emptyState\" class=\"empty\">No bookmarks yet.</div>\n            </section>\n        </div>\n    </div>",
-  "scripts": [
-    "\n        const STORAGE_KEY = \"prism.bookmarks.v1\";\n        let bookmarks = loadBookmarks();\n\n        function loadBookmarks() {\n            try {\n                const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));\n                return Array.isArray(saved) ? saved : [];\n            } catch { return []; }\n        }\n        function saveBookmarks() { localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks)); }\n        function uid() { return Math.random().toString(36).slice(2, 10); }\n        function normalizeUrl(url) {\n            try {\n                const parsed = new URL(url.startsWith(\"http\") ? url : \"https://\" + url);\n                parsed.hash = \"\";\n                return parsed.toString();\n            } catch { return null; }\n        }\n        function titleFromUrl(url) {\n            try {\n                const parsed = new URL(normalizeUrl(url));\n                return parsed.hostname.replace(/^www\\./, \"\");\n            } catch { return \"\"; }\n        }\n        function addBookmark(raw) {\n            const normalized = normalizeUrl(raw.url);\n            if (!normalized) return { ok: false, message: \"Invalid URL\" };\n            if (bookmarks.some((entry) => entry.url === normalized)) return { ok: false, message: \"Duplicate bookmark\" };\n            const title = raw.title.trim() || titleFromUrl(normalized);\n            const tags = raw.tags.split(\",\").map((tag) => tag.trim()).filter(Boolean);\n            bookmarks.unshift({ id: uid(), url: normalized, title, tags, notes: raw.notes.trim(), createdAt: Date.now(), lastVisited: null });\n            saveBookmarks();\n            render();\n            return { ok: true, message: \"Bookmark added\" };\n        }\n        function allTags() {\n            return [...new Set(bookmarks.flatMap((entry) => entry.tags))].sort((a, b) => a.localeCompare(b));\n        }\n        function renderTagFilter() {\n            const select = document.getElementById(\"tagFilter\");\n            const value = select.value;\n            select.innerHTML = '<option value=\"\">All tags</option>' + allTags().map((tag) => '<option value=\"' + escapeHtml(tag) + '\">' + escapeHtml(tag) + '</option>').join(\"\");\n            select.value = value;\n        }\n        function faviconHtml(url, title) {\n            try {\n                const domain = new URL(url).hostname;\n                return '<img class=\"favicon\" src=\"https://www.google.com/s2/favicons?domain=' + domain + '&sz=64\" alt=\"\" onerror=\"this.replaceWith(document.createRange().createContextualFragment(\\'<div class=&quot;initial&quot;>' + escapeHtml(title.charAt(0).toUpperCase() || domain.charAt(0).toUpperCase()) + '</div>\\'));\">';\n            } catch {\n                return '<div class=\"initial\">' + escapeHtml(title.charAt(0).toUpperCase() || \"?\") + \"</div>\";\n            }\n        }\n        function openBookmark(id) {\n            const entry = bookmarks.find((bookmark) => bookmark.id === id);\n            if (!entry) return;\n            entry.lastVisited = Date.now();\n            saveBookmarks();\n            window.open(entry.url, \"_blank\", \"noopener\");\n            render();\n        }\n        function render() {\n            renderTagFilter();\n            const term = document.getElementById(\"searchInput\").value.trim().toLowerCase();\n            const tag = document.getElementById(\"tagFilter\").value;\n            const list = bookmarks.filter((entry) => {\n                const haystack = [entry.title, entry.url, entry.notes, entry.tags.join(\" \")].join(\" \").toLowerCase();\n                return (!term || haystack.includes(term)) && (!tag || entry.tags.includes(tag));\n            });\n            const container = document.getElementById(\"bookmarks\");\n            container.innerHTML = \"\";\n            document.getElementById(\"emptyState\").style.display = list.length ? \"none\" : \"block\";\n            list.forEach((entry) => {\n                const domain = new URL(entry.url).hostname.replace(/^www\\./, \"\");\n                const card = document.createElement(\"article\");\n                card.className = \"card\";\n                card.innerHTML = `\n                    <div class=\"head\">\n                        ${faviconHtml(entry.url, entry.title)}\n                        <div>\n                            <strong>${escapeHtml(entry.title)}</strong>\n                            <div class=\"small\">${escapeHtml(domain)}</div>\n                        </div>\n                        <button type=\"button\">Open</button>\n                    </div>\n                    <div class=\"small\">${escapeHtml(entry.url)}</div>\n                    <div class=\"tags\">${entry.tags.map((t) => '<span class=\"tag\">' + escapeHtml(t) + '</span>').join(\"\")}</div>\n                    <div class=\"small\">${escapeHtml(entry.notes || \"No notes\")}</div>\n                    <div class=\"small\">Last visited: ${entry.lastVisited ? new Date(entry.lastVisited).toLocaleString() : \"Never\"}</div>\n                    <div class=\"row\">\n                        <button type=\"button\" data-remove=\"${entry.id}\">Delete</button>\n                    </div>`;\n                card.querySelector(\".head button\").addEventListener(\"click\", () => openBookmark(entry.id));\n                card.querySelector(\"[data-remove]\").addEventListener(\"click\", () => {\n                    bookmarks = bookmarks.filter((bookmark) => bookmark.id !== entry.id);\n                    saveBookmarks();\n                    render();\n                });\n                container.appendChild(card);\n            });\n        }\n        function escapeHtml(value) {\n            return String(value).replace(/[&<>\"]/g, (char) => ({ \"&\": \"&amp;\", \"<\": \"&lt;\", \">\": \"&gt;\", '\"': \"&quot;\" }[char]));\n        }\n        function download(filename, content, type) {\n            const blob = new Blob([content], { type });\n            const link = document.createElement(\"a\");\n            link.href = URL.createObjectURL(blob);\n            link.download = filename;\n            link.click();\n            URL.revokeObjectURL(link.href);\n        }\n\n        document.getElementById(\"autofillBtn\").addEventListener(\"click\", () => {\n            document.getElementById(\"titleInput\").value = titleFromUrl(document.getElementById(\"urlInput\").value);\n        });\n        document.getElementById(\"addBtn\").addEventListener(\"click\", () => {\n            const result = addBookmark({\n                url: document.getElementById(\"urlInput\").value,\n                title: document.getElementById(\"titleInput\").value,\n                tags: document.getElementById(\"tagsInput\").value,\n                notes: document.getElementById(\"notesInput\").value\n            });\n            document.getElementById(\"addMessage\").textContent = result.message;\n            if (result.ok) [\"urlInput\", \"titleInput\", \"tagsInput\", \"notesInput\"].forEach((id) => document.getElementById(id).value = \"\");\n        });\n        document.getElementById(\"bulkAddBtn\").addEventListener(\"click\", () => {\n            const lines = document.getElementById(\"bulkInput\").value.split(/\\r?\\n/).map((line) => line.trim()).filter(Boolean);\n            let added = 0;\n            lines.forEach((url) => { if (addBookmark({ url, title: \"\", tags: \"\", notes: \"\" }).ok) added += 1; });\n            document.getElementById(\"addMessage\").textContent = \"Added \" + added + \" bookmark(s)\";\n            document.getElementById(\"bulkInput\").value = \"\";\n        });\n        document.getElementById(\"exportJsonBtn\").addEventListener(\"click\", () => {\n            download(\"prism-bookmarks.json\", JSON.stringify(bookmarks, null, 2), \"application/json\");\n        });\n        document.getElementById(\"exportHtmlBtn\").addEventListener(\"click\", () => {\n            const html = `<!DOCTYPE NETSCAPE-Bookmark-file-1><META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; charset=UTF-8\"><TITLE>Bookmarks</TITLE><H1>Bookmarks</H1><DL><p>${bookmarks.map((entry) => `<DT><A HREF=\"${entry.url}\">${escapeHtml(entry.title)}</A>`).join(\"\")}</DL><p>`;\n            download(\"prism-bookmarks.html\", html, \"text/html\");\n        });\n        document.getElementById(\"searchInput\").addEventListener(\"input\", render);\n        document.getElementById(\"tagFilter\").addEventListener(\"change\", render);\n        render();\n    "
-  ],
-  "externalScripts": []
+  documentClassName: 'legacy-tool-document',
+  bodyClassName: 'legacy-tool-route',
+  title: 'Bookmark Manager',
+  headMarkup: `<style>
+:root { --bg:#0b0e13; --panel:#121821; --border:#283241; --text:#f8fafc; --muted:#94a3b8; --accent:#22c55e; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:"Segoe UI",sans-serif; color:var(--text); background:radial-gradient(circle at top,#173145 0%,var(--bg) 40%); }
+.app { padding:24px; display:grid; gap:20px; }
+.grid { display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start; }
+.panel { background:rgba(18,24,33,.94); border:1px solid var(--border); border-radius:18px; padding:18px; }
+h1,h2,h3,p { margin:0; }
+.row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+.stack { display:grid; gap:12px; }
+input, textarea, button, select { width:100%; font:inherit; color:inherit; background:#0f141b; border:1px solid var(--border); border-radius:12px; padding:10px 12px; }
+textarea { min-height:90px; resize:vertical; }
+button { cursor:pointer; width:auto; }
+.primary { background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.42); }
+.small { font-size:13px; color:var(--muted); }
+.filters { display:grid; grid-template-columns:1fr 180px; gap:12px; }
+.bookmarks { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-top:16px; }
+.card { background:#0f141b; border:1px solid var(--border); border-radius:16px; padding:14px; display:grid; gap:10px; }
+.card:hover { border-color:#3a4658; }
+.head { display:grid; grid-template-columns:40px 1fr auto; gap:12px; align-items:center; }
+.favicon, .initial { width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:#1a2330; overflow:hidden; font-weight:700; }
+.favicon img { width:100%; height:100%; object-fit:cover; }
+.tags { display:flex; flex-wrap:wrap; gap:8px; }
+.tag { padding:4px 8px; border-radius:999px; background:rgba(255,255,255,.06); font-size:12px; color:var(--muted); }
+.empty { text-align:center; padding:40px 18px; color:var(--muted); border:1px dashed var(--border); border-radius:16px; }
+.browser-import { border-color:rgba(96,165,250,.4); background:rgba(96,165,250,.08); color:#93c5fd; }
+.browser-import:hover { border-color:rgba(96,165,250,.6); }
+.import-progress { font-size:12px; color:var(--muted); margin-top:4px; }
+@media (max-width: 940px) { .grid, .filters { grid-template-columns:1fr; } }
+</style>`,
+  bodyMarkup: `<div class="app">
+<div>
+  <h1>Bookmark Manager</h1>
+  <p class="small" style="margin-top:8px;">Save, tag, search, import, and export local bookmarks.</p>
+</div>
+<div class="grid">
+  <section class="panel stack">
+    <h2>Add Bookmark</h2>
+    <input id="urlInput" placeholder="https://example.com">
+    <input id="titleInput" placeholder="Title">
+    <input id="tagsInput" placeholder="tags, separated, by commas">
+    <textarea id="notesInput" placeholder="Notes"></textarea>
+    <div class="row">
+      <button id="autofillBtn">Autofill title</button>
+      <button id="addBtn" class="primary">Add bookmark</button>
+    </div>
+    <p id="addMessage" class="small"></p>
+    <hr style="border-color:var(--border); width:100%;">
+    <h3>Import</h3>
+    <div class="stack">
+      <button id="importBrowserBtn" class="browser-import">Import from Browser</button>
+      <p id="importProgress" class="import-progress"></p>
+    </div>
+    <hr style="border-color:var(--border); width:100%;">
+    <h3>Bulk Import</h3>
+    <textarea id="bulkInput" placeholder="Paste one URL per line"></textarea>
+    <div class="row">
+      <button id="bulkAddBtn">Bulk add</button>
+      <button id="exportJsonBtn">Export JSON</button>
+      <button id="exportHtmlBtn">Export HTML</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="filters">
+      <input id="searchInput" placeholder="Search title, URL, or notes">
+      <select id="tagFilter"><option value="">All tags</option></select>
+    </div>
+    <div class="bookmarks" id="bookmarks"></div>
+    <div id="emptyState" class="empty">No bookmarks yet.</div>
+  </section>
+</div>
+</div>`,
+  scripts: [],
+  externalScripts: ["/converted-inline/bookmark-manager.js"]
 };
 
 export const title = page.title;

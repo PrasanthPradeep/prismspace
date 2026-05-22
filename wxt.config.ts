@@ -10,10 +10,13 @@ export default defineConfig({
     name: 'Prism Space',
     short_name: 'PrismSpace',
     description: 'Prism Space browser extension workspace.',
-    permissions: ['storage', 'sidePanel'],
+    permissions: ['storage', 'sidePanel', 'bookmarks', 'identity'],
     action: {
       default_title: 'Prism Space',
-        default_popup: 'popup.html'
+      default_popup: 'popup.html'
+    },
+    content_security_policy: {
+      extension_pages: "script-src 'self'; object-src 'self'"
     },
     options_ui: {
       page: 'options.html',

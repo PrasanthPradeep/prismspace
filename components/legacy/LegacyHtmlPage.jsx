@@ -16,18 +16,6 @@ function appendExternalScript(src, nodes) {
   });
 }
 
-function appendInlineScript(content, nodes) {
-  // Inline script execution is blocked by MV3 CSP in extension contexts.
-  // We intentionally skip injecting inline script text to avoid CSP errors.
-  // Inline scripts must be converted to external files (see repo TODOs).
-  // Keep a no-op placeholder so callers can push a node if they expect one.
-  const placeholder = document.createElement('script');
-  placeholder.type = 'application/javascript';
-  // Do not set .text or src to avoid CSP violations.
-  document.body.appendChild(placeholder);
-  nodes.push(placeholder);
-}
-
 export default function LegacyHtmlPage({
   headMarkup = '',
   bodyMarkup = '',
@@ -61,7 +49,7 @@ export default function LegacyHtmlPage({
 
   useEffect(() => {
     if (scriptRunRef.current) {
-      return undefined;
+      return;
     }
 
     scriptRunRef.current = true;
@@ -69,18 +57,11 @@ export default function LegacyHtmlPage({
     const nodes = [];
 
     async function runScripts() {
-      // Load allowed external scripts (served from the extension package).
       for (const src of externalScripts) {
-        if (cancelled) {
-          return;
-        }
-
+        if (cancelled) return;
         await appendExternalScript(src, nodes);
       }
 
-      // Do NOT inject inline script text here — MV3 popup/context blocks it.
-      // Inline script bodies should be moved to external files under `public/`
-      // and referenced via `externalScripts` so they run under `script-src 'self'`.
       document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
     }
 
@@ -90,10 +71,9 @@ export default function LegacyHtmlPage({
       cancelled = true;
       nodes.forEach((node) => node.remove());
     };
-  }, [externalScripts, scripts]);
+  }, [externalScripts]);
 
-  // Strip inline event handlers (onclick, onmouseover, etc.) from bodyMarkup
-  // because attributes with inline JS are blocked by extension CSP.
+  // Strip inline event handlers — blocked by MV3 CSP
   const sanitizedBody = bodyMarkup.replace(/\son\w+=["'][^"']*["']/gi, '');
 
   return (

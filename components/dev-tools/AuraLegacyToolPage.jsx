@@ -10,7 +10,6 @@ const AURA_THEME_KEY = 'aura-theme';
 
 function stripLegacyToolStyles(markup = '') {
   return markup
-    .replace(/<style[^>]*>[\s\S]*?<\/style>\s*/gi, '')
     .replace(/<link[^>]+fonts\.googleapis[^>]*>\s*/gi, '')
     .replace(/<link[^>]+api\.fontshare[^>]*>\s*/gi, '');
 }

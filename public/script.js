@@ -1171,7 +1171,413 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 
             // Load saved preferences
             loadSavedPreferences();
+
+            // Music / Spotify settings
+            initializeMusicSettings();
         }
+
+        // ── Spotify / Music Integration ──
+
+        function getSpotifyClientId() {
+            return localStorage.getItem('spotify_client_id') || '';
+        }
+
+        function getSpotifyTokens() {
+            try {
+                return JSON.parse(localStorage.getItem('spotify_tokens') || 'null');
+            } catch { return null; }
+        }
+
+        function saveSpotifyTokens(tokens) {
+            const existing = getSpotifyTokens() || {};
+            Object.assign(existing, tokens);
+            localStorage.setItem('spotify_tokens', JSON.stringify(existing));
+        }
+
+        function clearSpotifyTokens() {
+            localStorage.removeItem('spotify_tokens');
+            localStorage.removeItem('spotify_code_verifier');
+        }
+
+        function updateSpotifyRedirectUri() {
+            const el = document.getElementById('spotify-redirect-uri');
+            if (el && typeof chrome !== 'undefined' && chrome.runtime?.id) {
+                el.textContent = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
+            }
+        }
+
+        // ── General Music UI update ──
+        function updateMusicStatusUI() {
+            const spotifyOk = !!getSpotifyTokens()?.access_token;
+            const googleOk = !!getGoogleTokens()?.access_token;
+            const emailOk = !!localStorage.getItem('auth_session');
+
+            // Spotify
+            const sd = document.getElementById('spotify-status-dot');
+            const sc = document.getElementById('spotify-config-section');
+            const si = document.getElementById('spotify-connected-info');
+            const db = document.getElementById('spotify-disconnect-btn');
+            if (sd) sd.style.background = spotifyOk ? '#1DB954' : '#555';
+            if (sc) sc.style.display = spotifyOk ? 'none' : '';
+            if (si) si.style.display = spotifyOk ? '' : 'none';
+            if (db) db.style.display = spotifyOk ? '' : 'none';
+
+            // Google
+            const gd = document.getElementById('google-status-dot');
+            const gc = document.getElementById('google-config-section');
+            const gi = document.getElementById('google-connected-info');
+            const gdb = document.getElementById('google-disconnect-btn');
+            if (gd) gd.style.background = googleOk ? '#4285F4' : '#555';
+            if (gc) gc.style.display = googleOk ? 'none' : '';
+            if (gi) gi.style.display = googleOk ? '' : 'none';
+            if (gdb) gdb.style.display = googleOk ? '' : 'none';
+
+            // Email
+            const ed = document.getElementById('email-status-dot');
+            const ec = document.getElementById('email-config-section');
+            const ei = document.getElementById('email-connected-info');
+            const edb = document.getElementById('email-disconnect-btn');
+            if (ed) ed.style.background = emailOk ? '#22c55e' : '#555';
+            if (ec) ec.style.display = emailOk ? 'none' : '';
+            if (ei) ei.style.display = emailOk ? '' : 'none';
+            if (edb) edb.style.display = emailOk ? '' : 'none';
+
+            // Summary
+            const summary = document.getElementById('music-status-summary');
+            const count = [spotifyOk, googleOk, emailOk].filter(Boolean).length;
+            if (summary) summary.textContent = count + ' / 3 connected';
+        }
+
+        function generateCodeVerifier() {
+            const array = new Uint8Array(32);
+            crypto.getRandomValues(array);
+            return btoa(String.fromCharCode.apply(null, array))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function generateCodeChallenge(verifier) {
+            const encoder = new TextEncoder();
+            const data = encoder.encode(verifier);
+            const digest = await crypto.subtle.digest('SHA-256', data);
+            return btoa(String.fromCharCode.apply(null, new Uint8Array(digest)))
+                .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        }
+
+        async function connectSpotify() {
+            const clientId = getSpotifyClientId();
+            if (!clientId) {
+                showToast('Please enter your Spotify Client ID first');
+                return;
+            }
+
+            if (typeof chrome === 'undefined' || !chrome.identity || !chrome.runtime?.id) {
+                showToast('Spotify connection requires extension context (not available on file://)');
+                return;
+            }
+
+            try {
+                const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
+                const verifier = generateCodeVerifier();
+                localStorage.setItem('spotify_code_verifier', verifier);
+                const challenge = await generateCodeChallenge(verifier);
+
+                const scopes = [
+                    'user-read-playback-state',
+                    'user-modify-playback-state',
+                    'user-read-currently-playing',
+                    'playlist-read-private',
+                    'user-library-read'
+                ].join(' ');
+
+                const authUrl = 'https://accounts.spotify.com/authorize?' + new URLSearchParams({
+                    client_id: clientId,
+                    response_type: 'code',
+                    redirect_uri: redirectUri,
+                    code_challenge_method: 'S256',
+                    code_challenge: challenge,
+                    scope: scopes,
+                });
+
+                const redirectUrl = await new Promise((resolve, reject) => {
+                    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (result) => {
+                        if (chrome.runtime.lastError) {
+                            reject(new Error(chrome.runtime.lastError.message));
+                        } else {
+                            resolve(result);
+                        }
+                    });
+                });
+
+                if (!redirectUrl) {
+                    showToast('Authorization was cancelled');
+                    return;
+                }
+
+                const url = new URL(redirectUrl);
+                const code = url.searchParams.get('code');
+                if (!code) {
+                    showToast('Authorization failed - no code received');
+                    return;
+                }
+
+                const savedVerifier = localStorage.getItem('spotify_code_verifier');
+                const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: clientId,
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: redirectUri,
+                        code_verifier: savedVerifier,
+                    })
+                });
+
+                const tokenData = await tokenResponse.json();
+                if (!tokenData.access_token) {
+                    showToast('Token exchange failed: ' + (tokenData.error || 'unknown error'));
+                    return;
+                }
+
+                saveSpotifyTokens({
+                    access_token: tokenData.access_token,
+                    refresh_token: tokenData.refresh_token,
+                    expires_at: Date.now() + tokenData.expires_in * 1000,
+                });
+
+                const userRes = await fetch('https://api.spotify.com/v1/me', {
+                    headers: { Authorization: 'Bearer ' + tokenData.access_token }
+                });
+                if (userRes.ok) {
+                    const userData = await userRes.json();
+                    const nameEl = document.getElementById('spotify-user-name');
+                    if (nameEl) nameEl.textContent = userData.display_name || userData.id || 'Spotify User';
+                }
+                updateMusicStatusUI();
+                showToast('Spotify connected successfully!');
+            } catch (err) {
+                showToast('Connection failed: ' + err.message);
+            }
+        }
+
+        function disconnectSpotify() {
+            clearSpotifyTokens();
+            updateMusicStatusUI();
+            showToast('Spotify disconnected');
+        }
+
+        async function refreshSpotifyToken() {
+            const tokens = getSpotifyTokens();
+            const clientId = getSpotifyClientId();
+            if (!tokens || !tokens.refresh_token || !clientId) return false;
+
+            try {
+                const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
+                const response = await fetch('https://accounts.spotify.com/api/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: clientId,
+                        grant_type: 'refresh_token',
+                        refresh_token: tokens.refresh_token,
+                        redirect_uri: redirectUri,
+                    })
+                });
+
+                const data = await response.json();
+                if (!data.access_token) return false;
+
+                saveSpotifyTokens({
+                    access_token: data.access_token,
+                    expires_at: Date.now() + data.expires_in * 1000,
+                });
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // ── Google Auth ──
+
+        function getGoogleTokens() {
+            try { return JSON.parse(localStorage.getItem('google_tokens') || 'null'); }
+            catch { return null; }
+        }
+
+        function getGoogleProfile() {
+            try { return JSON.parse(localStorage.getItem('google_profile') || 'null'); }
+            catch { return null; }
+        }
+
+        async function connectGoogle() {
+            if (typeof chrome === 'undefined' || !chrome.identity) {
+                showToast('Google sign-in requires extension context');
+                return;
+            }
+            try {
+                const token = await new Promise((resolve, reject) => {
+                    chrome.identity.getAuthToken({ interactive: true, scopes: ['profile', 'email'] }, (t) => {
+                        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+                        else resolve(t);
+                    });
+                });
+                if (!token) { showToast('Google sign-in cancelled'); return; }
+
+                const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                const profile = await res.json();
+                if (!profile.id) { showToast('Failed to get profile'); return; }
+
+                localStorage.setItem('google_tokens', JSON.stringify({ access_token: token }));
+                localStorage.setItem('google_profile', JSON.stringify(profile));
+
+                const nameEl = document.getElementById('google-user-name');
+                const emailEl = document.getElementById('google-user-email');
+                if (nameEl) nameEl.textContent = profile.name || profile.given_name || 'Google User';
+                if (emailEl) emailEl.textContent = profile.email || '';
+
+                updateMusicStatusUI();
+                showToast('Signed in as ' + (profile.name || profile.email));
+            } catch (err) {
+                showToast('Google sign-in failed: ' + err.message);
+            }
+        }
+
+        function disconnectGoogle() {
+            const tokens = getGoogleTokens();
+            if (tokens?.access_token && typeof chrome !== 'undefined' && chrome.identity) {
+                chrome.identity.removeCachedAuthToken({ token: tokens.access_token }, function() {});
+            }
+            localStorage.removeItem('google_tokens');
+            localStorage.removeItem('google_profile');
+            updateMusicStatusUI();
+            showToast('Google account disconnected');
+        }
+
+        // ── Email / Password Auth ──
+
+        function getAuthUsers() {
+            try { return JSON.parse(localStorage.getItem('auth_users') || '{}'); }
+            catch { return {}; }
+        }
+
+        function saveAuthUser(email, password) {
+            const users = getAuthUsers();
+            users[email.toLowerCase()] = {
+                password: btoa(password),
+                created: Date.now()
+            };
+            localStorage.setItem('auth_users', JSON.stringify(users));
+        }
+
+        function registerEmail() {
+            const email = document.getElementById('auth-email')?.value.trim();
+            const password = document.getElementById('auth-password')?.value;
+            const errorEl = document.getElementById('auth-error') || document.getElementById('email-error');
+
+            if (!email || !password) {
+                if (errorEl) { errorEl.textContent = 'Please fill in both fields'; errorEl.style.display = ''; }
+                return;
+            }
+            if (password.length < 6) {
+                if (errorEl) { errorEl.textContent = 'Password must be at least 6 characters'; errorEl.style.display = ''; }
+                return;
+            }
+            const users = getAuthUsers();
+            if (users[email.toLowerCase()]) {
+                if (errorEl) { errorEl.textContent = 'An account with this email already exists'; errorEl.style.display = ''; }
+                return;
+            }
+            saveAuthUser(email, password);
+            localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
+
+            const emailEl = document.getElementById('auth-user-email');
+            if (emailEl) emailEl.textContent = email;
+            if (errorEl) errorEl.style.display = 'none';
+
+            updateMusicStatusUI();
+            showToast('Account created! Signed in as ' + email);
+        }
+
+        function loginEmail() {
+            const email = document.getElementById('auth-email')?.value.trim();
+            const password = document.getElementById('auth-password')?.value;
+            const errorEl = document.getElementById('auth-error') || document.getElementById('email-error');
+
+            if (!email || !password) {
+                if (errorEl) { errorEl.textContent = 'Please fill in both fields'; errorEl.style.display = ''; }
+                return;
+            }
+            const users = getAuthUsers();
+            const user = users[email.toLowerCase()];
+            if (!user || user.password !== btoa(password)) {
+                if (errorEl) { errorEl.textContent = 'Invalid email or password'; errorEl.style.display = ''; }
+                return;
+            }
+            localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
+
+            const emailEl = document.getElementById('auth-user-email');
+            if (emailEl) emailEl.textContent = email;
+            if (errorEl) errorEl.style.display = 'none';
+
+            updateMusicStatusUI();
+            showToast('Signed in as ' + email);
+        }
+
+        function disconnectEmail() {
+            localStorage.removeItem('auth_session');
+            const errorEl = document.getElementById('auth-error') || document.getElementById('email-error');
+            if (errorEl) errorEl.style.display = 'none';
+            updateMusicStatusUI();
+            showToast('Signed out');
+        }
+
+        // ── Initialize Music Settings ──
+
+        function initializeMusicSettings() {
+            updateSpotifyRedirectUri();
+
+            // Restore Spotify
+            const savedClientId = getSpotifyClientId();
+            const spotifyInput = document.getElementById('spotify-client-id');
+            if (spotifyInput && savedClientId) {
+                spotifyInput.value = savedClientId;
+                spotifyInput.addEventListener('input', function() {
+                    localStorage.setItem('spotify_client_id', this.value.trim());
+                });
+            }
+
+            // Restore Google
+            const googleProfile = getGoogleProfile();
+            if (googleProfile) {
+                const nameEl = document.getElementById('google-user-name');
+                const emailEl = document.getElementById('google-user-email');
+                if (nameEl) nameEl.textContent = googleProfile.name || googleProfile.given_name || 'Google User';
+                if (emailEl) emailEl.textContent = googleProfile.email || '';
+            }
+
+            // Restore Email
+            const session = (function() {
+                try { return JSON.parse(localStorage.getItem('auth_session') || 'null'); }
+                catch { return null; }
+            })();
+            if (session?.email) {
+                const emailEl = document.getElementById('auth-user-email');
+                if (emailEl) emailEl.textContent = session.email;
+            }
+
+            updateMusicStatusUI();
+        }
+
+        window.connectSpotify = connectSpotify;
+        window.disconnectSpotify = disconnectSpotify;
+        window.connectGoogle = connectGoogle;
+        window.disconnectGoogle = disconnectGoogle;
+        window.registerEmail = registerEmail;
+        window.loginEmail = loginEmail;
+        window.disconnectEmail = disconnectEmail;
+        window.updateSpotifyRedirectUri = updateSpotifyRedirectUri;
 
         // Clock color functions
         function updateClockColor(color) {
@@ -1419,7 +1825,8 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 
         // Upload custom wallpaper
         function uploadWallpaper(event) {
-            const file = event.target.files[0];
+            const input = event?.target || event;
+            const file = input.files ? input.files[0] : null;
             if (!file) return;
             
             // Validate file type
@@ -1450,7 +1857,8 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
 
         // Upload custom animated GIF
         function uploadAnimatedBg(event) {
-            const file = event.target.files[0];
+            const input = event?.target || event;
+            const file = input.files ? input.files[0] : null;
             if (!file) return;
             
             // Validate file type
@@ -1806,3 +2214,60 @@ function resetBackground() {
 
 // Focus Timer is now loaded via iframe from focus-settings.html
 
+
+// ── Data-attribute event handlers (CSP-compatible) ──
+// These replace inline onclick/onchange attributes stripped by MV3 CSP
+
+function clickUpload(id) {
+  const el = document.getElementById(id);
+  if (el) el.click();
+}
+
+function toggleMatrix() {
+  const cb = document.getElementById('matrixDisplay');
+  const action = document.querySelector('.matrix-action');
+  if (!cb || !action) return;
+  action.style.display = cb.checked ? '' : 'none';
+}
+
+(function() {
+  function ready() {
+    // Click handlers
+    document.querySelectorAll('[data-click]').forEach(function(el) {
+      el.addEventListener('click', function(e) {
+        var fn = el.getAttribute('data-click');
+        var arg = el.getAttribute('data-arg');
+        if (fn && arg !== null) {
+          if (window[fn]) window[fn](arg);
+        } else if (fn) {
+          if (window[fn]) window[fn]();
+        }
+      });
+    });
+
+    // Change handlers
+    document.querySelectorAll('[data-change]').forEach(function(el) {
+      el.addEventListener('change', function() {
+        var fn = el.getAttribute('data-change');
+        if (fn === 'toggleMatrix') {
+          if (window.toggleMatrix) window.toggleMatrix();
+          return;
+        }
+        if (fn === 'uploadWallpaper') {
+          if (window.uploadWallpaper) window.uploadWallpaper(el);
+          return;
+        }
+        if (fn === 'uploadAnimatedBg') {
+          if (window.uploadAnimatedBg) window.uploadAnimatedBg(el);
+          return;
+        }
+        if (window[fn]) window[fn]();
+      });
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', ready);
+  } else {
+    ready();
+  }
+})();
