@@ -1,26 +1,20 @@
-import '@/styles/globals.css'
+import type { Metadata } from 'next';
+import type { ReactNode } from 'react';
+import '@/styles/globals.css';
 
-export const metadata = {
+export const metadata: Metadata = {
   title: 'Prism Dev Browser',
   description: 'PRISM AI Browser - Developer Homepage',
-}
+};
 
-const themeInitScript = `
-(function () {
-  try {
-    var theme = localStorage.getItem('aura-theme') || 'light';
-    document.documentElement.dataset.theme = theme;
-  } catch (e) {
-    document.documentElement.dataset.theme = 'light';
-  }
-})();
-`;
+type RootLayoutProps = {
+  children: ReactNode;
+};
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -31,5 +25,5 @@ export default function RootLayout({ children }) {
       </head>
       <body>{children}</body>
     </html>
-  )
+  );
 }

@@ -2,25 +2,29 @@
 
 import { useEffect, useRef } from 'react';
 
+import { runStorageExample } from '@/lib/extension-storage';
+
+type LegacyHtmlPageProps = {
+  headMarkup?: string;
+  bodyMarkup?: string;
+  scripts?: string[];
+  externalScripts?: string[];
+  documentClassName?: string;
+  bodyClassName?: string;
+};
+
 const splitClasses = (value = '') => value.split(/\s+/).filter(Boolean);
 
-function appendExternalScript(src, nodes) {
-  return new Promise((resolve) => {
+function appendExternalScript(src: string, nodes: HTMLScriptElement[]) {
+  return new Promise<void>((resolve) => {
     const script = document.createElement('script');
     script.src = src;
     script.async = false;
-    script.onload = resolve;
-    script.onerror = resolve;
+    script.onload = () => resolve();
+    script.onerror = () => resolve();
     document.body.appendChild(script);
     nodes.push(script);
   });
-}
-
-function appendInlineScript(content, nodes) {
-  const script = document.createElement('script');
-  script.text = content;
-  document.body.appendChild(script);
-  nodes.push(script);
 }
 
 export default function LegacyHtmlPage({
@@ -30,7 +34,7 @@ export default function LegacyHtmlPage({
   externalScripts = [],
   documentClassName = '',
   bodyClassName = '',
-}) {
+}: LegacyHtmlPageProps) {
   const scriptRunRef = useRef(false);
 
   useEffect(() => {
@@ -55,15 +59,39 @@ export default function LegacyHtmlPage({
   }, [bodyClassName, documentClassName]);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function runExtensionStorage() {
+      try {
+        await runStorageExample();
+      } catch (error) {
+        if (!cancelled) {
+          console.warn('Extension storage example failed.', error);
+        }
+      }
+    }
+
+    runExtensionStorage();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (scriptRunRef.current) {
       return undefined;
     }
 
     scriptRunRef.current = true;
     let cancelled = false;
-    const nodes = [];
+    const nodes: HTMLScriptElement[] = [];
 
     async function runScripts() {
+      if (scripts.length > 0) {
+        console.warn('Inline legacy scripts were skipped. Generate external legacy scripts before packaging.');
+      }
+
       for (const src of externalScripts) {
         if (cancelled) {
           return;
@@ -72,12 +100,9 @@ export default function LegacyHtmlPage({
         await appendExternalScript(src, nodes);
       }
 
-      if (cancelled) {
-        return;
+      if (!cancelled) {
+        document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
       }
-
-      scripts.forEach((content) => appendInlineScript(content, nodes));
-      document.dispatchEvent(new Event('DOMContentLoaded', { bubbles: true, cancelable: true }));
     }
 
     runScripts();
