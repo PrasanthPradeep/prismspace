@@ -1199,10 +1199,92 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
             localStorage.removeItem('spotify_code_verifier');
         }
 
+        function getExtensionApi() {
+            return globalThis.browser || globalThis.chrome || null;
+        }
+
+        function isPromiseExtensionApi(api) {
+            return !!globalThis.browser && api === globalThis.browser;
+        }
+
+        function getExtensionLastError(api) {
+            return api && api.runtime ? api.runtime.lastError : null;
+        }
+
+        function getExtensionRedirectUri(path = 'provider_cb') {
+            const api = getExtensionApi();
+            if (api?.identity?.getRedirectURL) {
+                return api.identity.getRedirectURL(path);
+            }
+
+            return api?.runtime?.id ? `https://${api.runtime.id}.chromiumapp.org/${path}` : '';
+        }
+
+        function launchExtensionWebAuthFlow(details) {
+            const api = getExtensionApi();
+            if (!api?.identity?.launchWebAuthFlow) {
+                return Promise.reject(new Error('Identity web auth is not available in this browser context'));
+            }
+
+            if (isPromiseExtensionApi(api)) {
+                return api.identity.launchWebAuthFlow(details);
+            }
+
+            return new Promise((resolve, reject) => {
+                api.identity.launchWebAuthFlow(details, (result) => {
+                    const lastError = getExtensionLastError(api);
+                    if (lastError) {
+                        reject(new Error(lastError.message || 'Identity web auth failed'));
+                    } else {
+                        resolve(result);
+                    }
+                });
+            });
+        }
+
+        function getExtensionAuthToken(details) {
+            const api = getExtensionApi();
+            if (!api?.identity?.getAuthToken) {
+                return Promise.reject(new Error('Browser identity token API is not available'));
+            }
+
+            const normalizeToken = (result) => typeof result === 'string' ? result : result?.token;
+
+            if (isPromiseExtensionApi(api)) {
+                return api.identity.getAuthToken(details).then(normalizeToken);
+            }
+
+            return new Promise((resolve, reject) => {
+                api.identity.getAuthToken(details, (result) => {
+                    const lastError = getExtensionLastError(api);
+                    if (lastError) {
+                        reject(new Error(lastError.message || 'Browser identity token request failed'));
+                    } else {
+                        resolve(normalizeToken(result));
+                    }
+                });
+            });
+        }
+
+        function removeCachedExtensionAuthToken(token) {
+            const api = getExtensionApi();
+            if (!token || !api?.identity?.removeCachedAuthToken) {
+                return Promise.resolve();
+            }
+
+            if (isPromiseExtensionApi(api)) {
+                return api.identity.removeCachedAuthToken({ token }).catch(() => undefined);
+            }
+
+            return new Promise((resolve) => {
+                api.identity.removeCachedAuthToken({ token }, resolve);
+            });
+        }
+
         function updateSpotifyRedirectUri() {
             const el = document.getElementById('spotify-redirect-uri');
-            if (el && typeof chrome !== 'undefined' && chrome.runtime?.id) {
-                el.textContent = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
+            if (el) {
+                el.textContent = getExtensionRedirectUri() || 'Open the extension to generate a redirect URI';
             }
         }
 
@@ -1270,13 +1352,13 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 return;
             }
 
-            if (typeof chrome === 'undefined' || !chrome.identity || !chrome.runtime?.id) {
+            const redirectUri = getExtensionRedirectUri();
+            if (!redirectUri || !getExtensionApi()?.identity?.launchWebAuthFlow) {
                 showToast('Spotify connection requires extension context (not available on file://)');
                 return;
             }
 
             try {
-                const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
                 const verifier = generateCodeVerifier();
                 localStorage.setItem('spotify_code_verifier', verifier);
                 const challenge = await generateCodeChallenge(verifier);
@@ -1298,15 +1380,7 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                     scope: scopes,
                 });
 
-                const redirectUrl = await new Promise((resolve, reject) => {
-                    chrome.identity.launchWebAuthFlow({ url: authUrl, interactive: true }, (result) => {
-                        if (chrome.runtime.lastError) {
-                            reject(new Error(chrome.runtime.lastError.message));
-                        } else {
-                            resolve(result);
-                        }
-                    });
-                });
+                const redirectUrl = await launchExtensionWebAuthFlow({ url: authUrl, interactive: true });
 
                 if (!redirectUrl) {
                     showToast('Authorization was cancelled');
@@ -1372,7 +1446,9 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
             if (!tokens || !tokens.refresh_token || !clientId) return false;
 
             try {
-                const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`;
+                const redirectUri = getExtensionRedirectUri();
+                if (!redirectUri) return false;
+
                 const response = await fetch('https://accounts.spotify.com/api/token', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -1409,67 +1485,97 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
             catch { return null; }
         }
 
+        function getBackendUrl() {
+            return new Promise(function (resolve) {
+                const api = getExtensionApi();
+                if (api && api.storage && api.storage.local) {
+                    api.storage.local.get('PRISM_BACKEND_URL', function (res) {
+                        resolve(res.PRISM_BACKEND_URL || 'https://prismspace-backend-vk4s7gl22q-el.a.run.app');
+                    });
+                } else {
+                    resolve('https://prismspace-backend-vk4s7gl22q-el.a.run.app');
+                }
+            });
+        }
+
+        function migrateAnonymousData(token) {
+            const anonymousId = localStorage.getItem('prism.userId');
+            if (!anonymousId) return;
+
+            getBackendUrl().then(function (baseUrl) {
+                fetch(baseUrl + '/migrate-anonymous-data', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ anonymousId: anonymousId })
+                }).then(function (r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    const contentType = r.headers.get('content-type') || '';
+                    if (contentType.indexOf('application/json') === -1) {
+                        throw new Error('Expected JSON, got ' + contentType);
+                    }
+                    return r.json();
+                }).then(function (data) {
+                    console.log('Migration status:', data);
+                }).catch(function (err) {
+                    console.error('Migration error:', err);
+                });
+            });
+        }
+
         async function connectGoogle() {
-            if (typeof chrome === 'undefined' || !chrome.identity) {
-                showToast('Google sign-in requires extension context');
+            const api = getExtensionApi();
+            if (!api?.runtime?.sendMessage) {
+                showToast('Extension API is not available');
                 return;
             }
             try {
-                const token = await new Promise((resolve, reject) => {
-                    chrome.identity.getAuthToken({ interactive: true, scopes: ['profile', 'email'] }, (t) => {
-                        if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
-                        else resolve(t);
-                    });
+                api.runtime.sendMessage({ type: 'PRISM_AUTH_SIGN_IN_GOOGLE' }, function (res) {
+                    if (res && res.ok) {
+                        localStorage.setItem('google_profile', JSON.stringify({
+                            name: res.user.displayName || 'Google User',
+                            email: res.user.email || ''
+                        }));
+                        localStorage.setItem('google_tokens', JSON.stringify({ access_token: 'firebase-auth-active' }));
+                        localStorage.removeItem('auth_session');
+
+                        api.runtime.sendMessage({ type: 'PRISM_AUTH_GET_TOKEN' }, function (tokenRes) {
+                            if (tokenRes && tokenRes.token) {
+                                migrateAnonymousData(tokenRes.token);
+                            }
+                        });
+
+                        const nameEl = document.getElementById('google-user-name');
+                        const emailEl = document.getElementById('google-user-email');
+                        if (nameEl) nameEl.textContent = res.user.displayName || 'Google User';
+                        if (emailEl) emailEl.textContent = res.user.email || '';
+
+                        updateMusicStatusUI();
+                        showToast('Signed in as ' + (res.user.displayName || res.user.email));
+                    } else {
+                        showToast('Google sign-in failed: ' + (res?.error || 'Unknown error'));
+                    }
                 });
-                if (!token) { showToast('Google sign-in cancelled'); return; }
-
-                const res = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-                    headers: { Authorization: 'Bearer ' + token }
-                });
-                const profile = await res.json();
-                if (!profile.id) { showToast('Failed to get profile'); return; }
-
-                localStorage.setItem('google_tokens', JSON.stringify({ access_token: token }));
-                localStorage.setItem('google_profile', JSON.stringify(profile));
-
-                const nameEl = document.getElementById('google-user-name');
-                const emailEl = document.getElementById('google-user-email');
-                if (nameEl) nameEl.textContent = profile.name || profile.given_name || 'Google User';
-                if (emailEl) emailEl.textContent = profile.email || '';
-
-                updateMusicStatusUI();
-                showToast('Signed in as ' + (profile.name || profile.email));
             } catch (err) {
                 showToast('Google sign-in failed: ' + err.message);
             }
         }
 
         function disconnectGoogle() {
-            const tokens = getGoogleTokens();
-            if (tokens?.access_token && typeof chrome !== 'undefined' && chrome.identity) {
-                chrome.identity.removeCachedAuthToken({ token: tokens.access_token }, function() {});
+            const api = getExtensionApi();
+            if (api?.runtime?.sendMessage) {
+                api.runtime.sendMessage({ type: 'PRISM_AUTH_SIGN_OUT' }, function (res) {
+                    localStorage.removeItem('google_tokens');
+                    localStorage.removeItem('google_profile');
+                    updateMusicStatusUI();
+                    showToast('Google account disconnected');
+                });
             }
-            localStorage.removeItem('google_tokens');
-            localStorage.removeItem('google_profile');
-            updateMusicStatusUI();
-            showToast('Google account disconnected');
         }
 
         // ── Email / Password Auth ──
-
-        function getAuthUsers() {
-            try { return JSON.parse(localStorage.getItem('auth_users') || '{}'); }
-            catch { return {}; }
-        }
-
-        function saveAuthUser(email, password) {
-            const users = getAuthUsers();
-            users[email.toLowerCase()] = {
-                password: btoa(password),
-                created: Date.now()
-            };
-            localStorage.setItem('auth_users', JSON.stringify(users));
-        }
 
         function registerEmail() {
             const email = document.getElementById('auth-email')?.value.trim();
@@ -1484,20 +1590,38 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 if (errorEl) { errorEl.textContent = 'Password must be at least 6 characters'; errorEl.style.display = ''; }
                 return;
             }
-            const users = getAuthUsers();
-            if (users[email.toLowerCase()]) {
-                if (errorEl) { errorEl.textContent = 'An account with this email already exists'; errorEl.style.display = ''; }
+
+            const api = getExtensionApi();
+            if (!api?.runtime?.sendMessage) {
+                if (errorEl) { errorEl.textContent = 'Extension API not available'; errorEl.style.display = ''; }
                 return;
             }
-            saveAuthUser(email, password);
-            localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
 
-            const emailEl = document.getElementById('auth-user-email');
-            if (emailEl) emailEl.textContent = email;
-            if (errorEl) errorEl.style.display = 'none';
+            api.runtime.sendMessage({
+                type: 'PRISM_AUTH_REGISTER_EMAIL',
+                payload: { email: email, password: password }
+            }, function (res) {
+                if (res && res.ok) {
+                    localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
+                    localStorage.removeItem('google_tokens');
+                    localStorage.removeItem('google_profile');
 
-            updateMusicStatusUI();
-            showToast('Account created! Signed in as ' + email);
+                    api.runtime.sendMessage({ type: 'PRISM_AUTH_GET_TOKEN' }, function (tokenRes) {
+                        if (tokenRes && tokenRes.token) {
+                            migrateAnonymousData(tokenRes.token);
+                        }
+                    });
+
+                    const emailEl = document.getElementById('auth-user-email');
+                    if (emailEl) emailEl.textContent = email;
+                    if (errorEl) errorEl.style.display = 'none';
+
+                    updateMusicStatusUI();
+                    showToast('Account created! Signed in as ' + email);
+                } else {
+                    if (errorEl) { errorEl.textContent = res?.error || 'Registration failed'; errorEl.style.display = ''; }
+                }
+            });
         }
 
         function loginEmail() {
@@ -1509,28 +1633,51 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 if (errorEl) { errorEl.textContent = 'Please fill in both fields'; errorEl.style.display = ''; }
                 return;
             }
-            const users = getAuthUsers();
-            const user = users[email.toLowerCase()];
-            if (!user || user.password !== btoa(password)) {
-                if (errorEl) { errorEl.textContent = 'Invalid email or password'; errorEl.style.display = ''; }
+
+            const api = getExtensionApi();
+            if (!api?.runtime?.sendMessage) {
+                if (errorEl) { errorEl.textContent = 'Extension API not available'; errorEl.style.display = ''; }
                 return;
             }
-            localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
 
-            const emailEl = document.getElementById('auth-user-email');
-            if (emailEl) emailEl.textContent = email;
-            if (errorEl) errorEl.style.display = 'none';
+            api.runtime.sendMessage({
+                type: 'PRISM_AUTH_SIGN_IN_EMAIL',
+                payload: { email: email, password: password }
+            }, function (res) {
+                if (res && res.ok) {
+                    localStorage.setItem('auth_session', JSON.stringify({ email: email.toLowerCase(), loggedIn: Date.now() }));
+                    localStorage.removeItem('google_tokens');
+                    localStorage.removeItem('google_profile');
 
-            updateMusicStatusUI();
-            showToast('Signed in as ' + email);
+                    api.runtime.sendMessage({ type: 'PRISM_AUTH_GET_TOKEN' }, function (tokenRes) {
+                        if (tokenRes && tokenRes.token) {
+                            migrateAnonymousData(tokenRes.token);
+                        }
+                    });
+
+                    const emailEl = document.getElementById('auth-user-email');
+                    if (emailEl) emailEl.textContent = email;
+                    if (errorEl) errorEl.style.display = 'none';
+
+                    updateMusicStatusUI();
+                    showToast('Signed in as ' + email);
+                } else {
+                    if (errorEl) { errorEl.textContent = res?.error || 'Invalid email or password'; errorEl.style.display = ''; }
+                }
+            });
         }
 
         function disconnectEmail() {
-            localStorage.removeItem('auth_session');
-            const errorEl = document.getElementById('auth-error') || document.getElementById('email-error');
-            if (errorEl) errorEl.style.display = 'none';
-            updateMusicStatusUI();
-            showToast('Signed out');
+            const api = getExtensionApi();
+            if (api?.runtime?.sendMessage) {
+                api.runtime.sendMessage({ type: 'PRISM_AUTH_SIGN_OUT' }, function (res) {
+                    localStorage.removeItem('auth_session');
+                    const errorEl = document.getElementById('auth-error') || document.getElementById('email-error');
+                    if (errorEl) errorEl.style.display = 'none';
+                    updateMusicStatusUI();
+                    showToast('Signed out');
+                });
+            }
         }
 
         // ── Initialize Music Settings ──
@@ -1548,26 +1695,42 @@ Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
                 });
             }
 
-            // Restore Google
-            const googleProfile = getGoogleProfile();
-            if (googleProfile) {
-                const nameEl = document.getElementById('google-user-name');
-                const emailEl = document.getElementById('google-user-email');
-                if (nameEl) nameEl.textContent = googleProfile.name || googleProfile.given_name || 'Google User';
-                if (emailEl) emailEl.textContent = googleProfile.email || '';
-            }
+            // Sync with Firebase Auth state on backend/background script
+            const api = getExtensionApi();
+            if (api?.runtime?.sendMessage) {
+                api.runtime.sendMessage({ type: 'PRISM_AUTH_GET_STATE' }, function (res) {
+                    if (res && res.user) {
+                        const user = res.user;
+                        if (user.isGoogle) {
+                            localStorage.setItem('google_profile', JSON.stringify({
+                                name: user.displayName || 'Google User',
+                                email: user.email || ''
+                            }));
+                            localStorage.setItem('google_tokens', JSON.stringify({ access_token: 'firebase-auth-active' }));
+                            localStorage.removeItem('auth_session');
 
-            // Restore Email
-            const session = (function() {
-                try { return JSON.parse(localStorage.getItem('auth_session') || 'null'); }
-                catch { return null; }
-            })();
-            if (session?.email) {
-                const emailEl = document.getElementById('auth-user-email');
-                if (emailEl) emailEl.textContent = session.email;
-            }
+                            const nameEl = document.getElementById('google-user-name');
+                            const emailEl = document.getElementById('google-user-email');
+                            if (nameEl) nameEl.textContent = user.displayName || 'Google User';
+                            if (emailEl) emailEl.textContent = user.email || '';
+                        } else {
+                            localStorage.setItem('auth_session', JSON.stringify({ email: user.email.toLowerCase(), loggedIn: Date.now() }));
+                            localStorage.removeItem('google_tokens');
+                            localStorage.removeItem('google_profile');
 
-            updateMusicStatusUI();
+                            const emailEl = document.getElementById('auth-user-email');
+                            if (emailEl) emailEl.textContent = user.email;
+                        }
+                    } else {
+                        localStorage.removeItem('google_tokens');
+                        localStorage.removeItem('google_profile');
+                        localStorage.removeItem('auth_session');
+                    }
+                    updateMusicStatusUI();
+                });
+            } else {
+                updateMusicStatusUI();
+            }
         }
 
         window.connectSpotify = connectSpotify;

@@ -1,0 +1,7 @@
+# pnpm requires dependency build scripts to be explicitly approved.
+# This file is copied into the Docker build context before pnpm install.
+allowBuilds:
+  '@firebase/util': true
+  '@google/genai': true
+  esbuild: true
+  protobufjs: true

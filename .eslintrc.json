@@ -5,7 +5,8 @@
     "app/**",
     "next.config.js",
     "scripts/**",
-    ".output/**"
+    ".output/**",
+    "backend/dist/**"
   ],
   "env": {
     "browser": true,
@@ -28,6 +29,7 @@
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "rules": {
     "no-unused-vars": "off",
-    "@typescript-eslint/no-unused-vars": "off"
+    "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-explicit-any": "off"
   }
 }

@@ -289,8 +289,7 @@ git push --force-with-lease'
                     html += `
                         <div class="command-card">
                             <div class="command-name">${cmd.name}</div>
-                            <div class="command-syntax" onclick="copyCommand(this)">${cmd.syntax.replace(/\
-/g, '<br>')}</div>
+                            <div class="command-syntax" onclick="copyCommand(this)">${cmd.syntax.replace(/\n/g, '<br>')}</div>
                             <div class="command-desc">${cmd.description}</div>
                             ${getBadge(cmd.danger)}
                         </div>
@@ -307,8 +306,7 @@ git push --force-with-lease'
                     <div class="scenario-item" onclick="toggleScenario(${idx})">
                         <strong>${s.problem}</strong>
                         <div class="scenario-solution" id="scenario-${idx}" style="display:none; margin-top: 0.75rem; background: #0a0e27; padding: 0.75rem; border-radius: 3px; cursor: pointer; font-size: 0.85rem;">
-                            <code style="white-space: pre-wrap; word-break: break-word;">${s.solution.replace(/\
-/g, '<br>')}</code>
+                            <code style="white-space: pre-wrap; word-break: break-word;">${s.solution.replace(/\n/g, '<br>')}</code>
                         </div>
                     </div>
                 `;

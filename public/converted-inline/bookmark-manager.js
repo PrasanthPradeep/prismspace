@@ -143,15 +143,42 @@ function download(filename, content, type) {
   URL.revokeObjectURL(link.href);
 }
 
+function getExtensionApi() {
+  return globalThis.browser || globalThis.chrome || null;
+}
+
+function isPromiseExtensionApi(api) {
+  return !!globalThis.browser && api === globalThis.browser;
+}
+
+function getBrowserBookmarksTree() {
+  var api = getExtensionApi();
+  if (!api || !api.bookmarks || !api.bookmarks.getTree) {
+    return Promise.reject(new Error("Browser bookmark API not available"));
+  }
+
+  if (isPromiseExtensionApi(api)) {
+    return api.bookmarks.getTree();
+  }
+
+  return new Promise(function(resolve, reject) {
+    api.bookmarks.getTree(function(results) {
+      var lastError = api.runtime && api.runtime.lastError;
+      if (lastError) reject(new Error(lastError.message || "Browser bookmark import failed"));
+      else resolve(results);
+    });
+  });
+}
+
 function importFromBrowser() {
   var progress = document.getElementById("importProgress");
-  if (typeof chrome === "undefined" || !chrome.bookmarks) {
+  if (!getExtensionApi() || !getExtensionApi().bookmarks) {
     progress.textContent = "Browser bookmark API not available (requires extension context with bookmarks permission)";
     return;
   }
   progress.textContent = "Fetching browser bookmarks...";
-  try {
-    chrome.bookmarks.getTree(function(results) {
+  getBrowserBookmarksTree()
+    .then(function(results) {
       var imported = 0;
       var skipped = 0;
       function traverse(nodes) {
@@ -168,10 +195,10 @@ function importFromBrowser() {
       traverse(results);
       progress.textContent = "Imported " + imported + " bookmark(s) from browser" + (skipped ? " (" + skipped + " duplicates skipped)" : "");
       document.getElementById("addMessage").textContent = "";
+    })
+    .catch(function(e) {
+      progress.textContent = "Error: " + e.message;
     });
-  } catch(e) {
-    progress.textContent = "Error: " + e.message;
-  }
 }
 
 document.getElementById("autofillBtn").addEventListener("click", function() {

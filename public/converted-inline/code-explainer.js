@@ -1,6 +1,7 @@
 
-        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
-        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        // AI calls now routed through Prism Cloud Run backend via prism-backend-adapter.js
+        // No API keys or AI SDK needed in the extension.
+
         let depth = 0;
         let busy = false;
         let lastExplanation = '';
@@ -36,61 +37,16 @@
 
 
 
-        function getGroqError(xhr) {
-            try {
-                const payload = JSON.parse(xhr.responseText);
-                if (payload && payload.error) {
-                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
-                }
-            } catch (_) { }
-            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
-        }
-
-        function buildGroqPayload(messages, opts) {
-            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
-            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
-                payload.max_completion_tokens = payload.max_tokens;
-            }
-            delete payload.max_tokens;
-            if (payload.reasoning_effort == null) {
-                payload.reasoning_effort = 'medium';
-            }
-            return payload;
-        }
-
-        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        // XHR streaming — now proxied through Prism Cloud Run backend
         function xhrStream(messages, opts, onChunk, onDone, onErr) {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', GROQ_API_URL, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let pos = 0;
-                function parse() {
-                    const raw = xhr.responseText;
-                    if (raw.length <= pos) return;
-                    const newText = raw.slice(pos); pos = raw.length;
-                    newText.split('\
-').forEach(line => {
-                        if (!line.startsWith('data: ')) return;
-                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
-                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
-                    });
-                }
-                xhr.onprogress = parse;
-                xhr.onload = () => {
-                    parse();
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        onDone && onDone();
-                        return;
-                    }
-                    onErr && onErr(getGroqError(xhr));
-                };
-                xhr.onerror = () => onErr && onErr('Network error');
-                xhr.ontimeout = () => onErr && onErr('Timeout');
-                xhr.timeout = 120000;
-                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
-            } catch (e) { onErr && onErr(e.message); }
+            var depthKeys = ['code-explain-brief', 'code-explain-lineby', 'code-explain-teach'];
+            var promptKey = depthKeys[depth] || 'code-explain-brief';
+            var lang = document.getElementById('langSel') ? document.getElementById('langSel').value : 'JavaScript';
+            var userMsg = messages[messages.length - 1];
+            var input = userMsg ? userMsg.content : '';
+            window.PrismBackend.stream(promptKey, input, { lang: lang }, onChunk, onDone, onErr);
         }
+
 
         function runExplain() {
             if (busy) return;
@@ -117,8 +73,7 @@ ${code}\
                 { max_tokens: 3000, temperature: 0.6 },
                 (tok) => {
                     full += tok;
-                    liveBody.innerHTML = escHTML(full).replace(/
-/g, '<br>')pan class="streaming-cursor"></span>';
+                    liveBody.innerHTML = escHTML(full).replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>';
                     scroll.scrollTop = scroll.scrollHeight;
                 },
                 () => {
@@ -137,16 +92,13 @@ ${code}\
         function renderExplanation(full, lang, scroll, liveBlock) {
             scroll.removeChild(liveBlock);
             scroll.innerHTML = '';
-            const conceptMatch = full.match(/\[CONCEPTS\]:(.*?)(?:\
-|$)/i);
-            const mainText = full.replace(/\[CONCEPTS\]:.*?(?:\
-|$)/gi, '').trim();
+            const conceptMatch = full.match(/\[CONCEPTS\]:(.*?)(?:\n|$)/i);
+            const mainText = full.replace(/\[CONCEPTS\]:.*?(?:\n|$)/gi, '').trim();
 
             const mainBlock = document.createElement('div'); mainBlock.className = 'section-block';
             const hdr = document.createElement('div'); hdr.className = 'section-hdr'; hdr.innerHTML = '📖 Explanation';
             const body = document.createElement('div'); body.className = 'section-body';
-            body.innerHTML = escHTML(mainText).replace(/\
-/g, '<br>');
+            body.innerHTML = escHTML(mainText).replace(/\n/g, '<br>');
             mainBlock.appendChild(hdr); mainBlock.appendChild(body); scroll.appendChild(mainBlock);
 
             if (conceptMatch) {

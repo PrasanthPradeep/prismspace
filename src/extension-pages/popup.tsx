@@ -1,15 +1,15 @@
 import HomePage from '@/components/home/HomePage';
+import { extensionApi } from '@/src/extension/browserApi';
 import { renderPage } from '@/src/extension/renderPage';
 
 function pingBackground() {
-	const runtime = globalThis.chrome?.runtime;
+	const runtime = extensionApi.runtime;
 	if (!runtime?.sendMessage) {
 		return;
 	}
 
 	try {
-		const response = runtime.sendMessage({ type: 'PRISM_PING' });
-		response?.catch?.(() => undefined);
+		void runtime.sendMessage({ type: 'PRISM_PING' }).catch(() => undefined);
 	} catch {
 		// Ignore startup ping failures so the popup can still render.
 	}

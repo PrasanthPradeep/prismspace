@@ -21,7 +21,13 @@ pnpm install
 pnpm run dev
 ```
 
-Then load the generated development extension in your browser from WXT output (Chrome MV3 output path is shown in the terminal).
+For Firefox-based browsers, run:
+
+```bash
+pnpm run dev:firefox
+```
+
+Then load the generated development extension from the WXT output path shown in the terminal.
 
 ## Build
 
@@ -29,6 +35,8 @@ Then load the generated development extension in your browser from WXT output (C
 pnpm run build
 pnpm run zip
 ```
+
+`build` and `zip` create both Chrome MV3 and Firefox MV3 targets. Use `build:chrome`, `build:firefox`, `zip:chrome`, or `zip:firefox` when you only need one browser.
 
 ## Structure
 

@@ -1,4 +1,7 @@
 import { useMemo, useState, useEffect, useRef } from "react"
+import { auth } from "@/src/extension/firebase"
+import { onAuthStateChanged } from "firebase/auth"
+
 import {
   Search,
   Clock3,
@@ -34,6 +37,7 @@ import {
   Music,
   ExternalLink,
 } from "lucide-react"
+import { getExtensionRedirectUrl, openExtensionOptionsPage } from "@/src/extension/browserApi"
 
 const toolRoutes: Record<string, string> = {
   "JSON Toolkit": "dev-space-json-toolkit.html",
@@ -159,7 +163,9 @@ async function refreshSpotifyToken(): Promise<string | null> {
   const clientId = getSpotifyClientId()
   if (!tokens?.refresh_token || !clientId) return null
   try {
-    const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/provider_cb`
+    const redirectUri = getExtensionRedirectUrl()
+    if (!redirectUri) return null
+
     const res = await fetch("https://accounts.spotify.com/api/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -207,12 +213,27 @@ export default function App() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    // Check all account connections
-    const gTokens = (() => { try { return JSON.parse(localStorage.getItem("google_tokens") || "null") } catch { return null } })()
-    const gProfile = (() => { try { return JSON.parse(localStorage.getItem("google_profile") || "null") } catch { return null } })()
-    const session = (() => { try { return JSON.parse(localStorage.getItem("auth_session") || "null") } catch { return null } })()
-    setGoogleConnected(!!gTokens?.access_token && !!gProfile)
-    setEmailConnected(!!session?.email)
+    // Listen to real-time Firebase Auth changes
+    let unsubscribeAuth = () => {}
+    if (auth) {
+      unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+        if (user) {
+          const isGoogle = user.providerData.some((p) => p.providerId === "google.com")
+          setGoogleConnected(isGoogle)
+          setEmailConnected(!isGoogle)
+        } else {
+          setGoogleConnected(false)
+          setEmailConnected(false)
+        }
+      })
+    } else {
+      // Fallback: check localStorage for Spotify/Google mock presence if Firebase is not enabled
+      const gTokens = (() => { try { return JSON.parse(localStorage.getItem("google_tokens") || "null") } catch { return null } })()
+      const gProfile = (() => { try { return JSON.parse(localStorage.getItem("google_profile") || "null") } catch { return null } })()
+      const session = (() => { try { return JSON.parse(localStorage.getItem("auth_session") || "null") } catch { return null } })()
+      setGoogleConnected(!!gTokens?.access_token && !!gProfile)
+      setEmailConnected(!!session?.email)
+    }
 
     const tokens = getSpotifyTokens()
     setConnected(!!tokens?.access_token)
@@ -240,7 +261,10 @@ export default function App() {
 
     fetchTrack()
     pollRef.current = setInterval(fetchTrack, 3000)
-    return () => { if (pollRef.current) clearInterval(pollRef.current) }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current)
+      unsubscribeAuth()
+    }
   }, [])
 
   async function spotifyControl(action: "play" | "pause" | "next" | "previous") {
@@ -358,11 +382,7 @@ export default function App() {
 
         <button
           onClick={() => {
-            if (typeof chrome !== 'undefined' && chrome.runtime?.openOptionsPage) {
-              chrome.runtime.openOptionsPage()
-            } else {
-              window.open('options.html', '_blank')
-            }
+            void openExtensionOptionsPage()
           }}
           className="rounded-xl border border-white/10 bg-white/5 p-2 transition hover:bg-white/10"
         >

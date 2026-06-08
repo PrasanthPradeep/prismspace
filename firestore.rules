@@ -1,0 +1,42 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Users ──────────────────────────────────────────────────────────────────
+    // Authenticated users can only read/write their own user document.
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // ── Saved Pages ────────────────────────────────────────────────────────────
+    // Document ID is userId_<base64url(url)>. Only the owner can access it.
+    match /saved_pages/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Notes ──────────────────────────────────────────────────────────────────
+    match /notes/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Chat History ────────────────────────────────────────────────────────────
+    match /chat_history/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // Chat responses are immutable once written
+      allow update: if false;
+    }
+
+    // ── Default: deny everything else ─────────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

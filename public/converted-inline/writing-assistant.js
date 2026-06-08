@@ -1,6 +1,6 @@
 
-        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
-        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        // AI calls now routed through Prism Cloud Run backend via prism-backend-adapter.js
+        // No API keys or AI SDK needed in the extension.
 
         let currentAction = 'improve';
         let isStreaming = false;
@@ -24,64 +24,23 @@
         }
 
 
-
-        function getGroqError(xhr) {
-            try {
-                const payload = JSON.parse(xhr.responseText);
-                if (payload && payload.error) {
-                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
-                }
-            } catch (_) { }
-            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
-        }
-
-        function buildGroqPayload(messages, opts) {
-            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
-            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
-                payload.max_completion_tokens = payload.max_tokens;
-            }
-            delete payload.max_tokens;
-            if (payload.reasoning_effort == null) {
-                payload.reasoning_effort = 'medium';
-            }
-            return payload;
-        }
-
-        // XHR-based streaming — calls Azure proxy (no API key needed client-side)
+        // XHR-based streaming — now proxied through Prism Cloud Run backend
         function xhrStream(messages, opts, onChunk, onDone, onErr) {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', GROQ_API_URL, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let pos = 0;
-                function parse() {
-                    const raw = xhr.responseText;
-                    if (raw.length <= pos) return;
-                    const newText = raw.slice(pos);
-                    pos = raw.length;
-                    newText.split('\
-').forEach(line => {
-                        if (!line.startsWith('data: ')) return;
-                        const d = line.slice(6).trim();
-                        if (d === '[DONE]') return;
-                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
-                    });
-                }
-                xhr.onprogress = parse;
-                xhr.onload = () => {
-                    parse();
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        onDone && onDone();
-                        return;
-                    }
-                    onErr && onErr(getGroqError(xhr));
-                };
-                xhr.onerror = () => onErr && onErr('Network error — check internet connection');
-                xhr.ontimeout = () => onErr && onErr('Request timed out after 2 minutes');
-                xhr.timeout = 120000;
-                xhr.send(JSON.stringify(buildGroqPayload(messages, Object.assign({ max_tokens: 4096, temperature: 0.7, top_p: 1.0 }, opts || {}))));
-            } catch (e) { onErr && onErr(e.message); }
+            // Extract the user message content (last message in the array)
+            var userMsg = messages[messages.length - 1];
+            var input = userMsg ? userMsg.content : '';
+
+            // Map writing assistant actions to backend prompt keys
+            var promptKey = 'writing-' + currentAction;
+            var context = {};
+            if (currentAction === 'translate') {
+                context.targetLang = document.getElementById('langSelect') ? document.getElementById('langSelect').value : 'Spanish';
+                promptKey = 'writing-translate';
+            }
+
+            window.PrismBackend.stream(promptKey, input, context, onChunk, onDone, onErr);
         }
+
 
         function processText() {
             if (isStreaming) return;

@@ -1,6 +1,7 @@
 
-        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
-        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        // AI calls now routed through Prism Cloud Run backend via prism-backend-adapter.js
+        // No API keys or AI SDK needed in the extension.
+
         let busy = false;
         let lastResult = '';
 
@@ -20,63 +21,16 @@
             return [...document.querySelectorAll('.crit-item.checked')].map(el => el.querySelector('span').textContent.replace(/^[^ ]+ /, ''));
         }
 
-
-
-        function getGroqError(xhr) {
-            try {
-                const payload = JSON.parse(xhr.responseText);
-                if (payload && payload.error) {
-                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
-                }
-            } catch (_) { }
-            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
-        }
-
-        function buildGroqPayload(messages, opts) {
-            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
-            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
-                payload.max_completion_tokens = payload.max_tokens;
-            }
-            delete payload.max_tokens;
-            if (payload.reasoning_effort == null) {
-                payload.reasoning_effort = 'medium';
-            }
-            return payload;
-        }
-
-        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        // XHR streaming — now proxied through Prism Cloud Run backend
+        // For decision analyzer, the system prompt is embedded in messages[0].content
+        // and forwarded as the user input to the backend's decision-analyze prompt.
         function xhrStream(messages, opts, onChunk, onDone, onErr) {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', GROQ_API_URL, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let pos = 0;
-                function parse() {
-                    const raw = xhr.responseText;
-                    if (raw.length <= pos) return;
-                    const nt = raw.slice(pos); pos = raw.length;
-                    nt.split('\
-').forEach(line => {
-                        if (!line.startsWith('data: ')) return;
-                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
-                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
-                    });
-                }
-                xhr.onprogress = parse;
-                xhr.onload = () => {
-                    parse();
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        onDone && onDone();
-                        return;
-                    }
-                    onErr && onErr(getGroqError(xhr));
-                };
-                xhr.onerror = () => onErr && onErr('Network error');
-                xhr.ontimeout = () => onErr && onErr('Timeout');
-                xhr.timeout = 180000; // 3 min for thinking mode
-                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
-            } catch (e) { onErr && onErr(e.message); }
+            // The decision analyzer embeds the full decision context in the system message.
+            // We send that as the user input to the backend's 'decision-analyze' prompt key.
+            var sysMsg = messages[0] && messages[0].content ? messages[0].content : '';
+            window.PrismBackend.stream('decision-analyze', sysMsg, {}, onChunk, onDone, onErr);
         }
+
 
         function runAnalysis() {
             if (busy) return;
@@ -84,8 +38,7 @@
             const optRaw = document.getElementById('optionsInput').value.trim();
             if (!title || !optRaw) { alert('Please fill in the decision title and options!'); return; }
 
-            const options = optRaw.split(/[\
-,]+/).map(s => s.trim()).filter(Boolean);
+            const options = optRaw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
             const criteria = getCheckedCriteria();
             const context = document.getElementById('contextInput').value.trim();
 
@@ -216,8 +169,7 @@ Your final recommendation with clear explanation
             const recBox = document.createElement('div'); recBox.className = 'recommendation-box';
             const recTitle = document.createElement('div'); recTitle.className = 'rec-title'; recTitle.textContent = '🏆 Final Recommendation';
             const recText = document.createElement('div'); recText.style.cssText = 'font-size:13px;line-height:1.7;color:rgba(255,255,255,0.85)';
-            recText.innerHTML = (rec || full.replace(/\[.*?\][\s\S]*?\[\/.*?\]/g, '')).trim().replace(/\
-/g, '<br>');
+            recText.innerHTML = (rec || full.replace(/\[.*?\][\s\S]*?\[\/.*?\]/g, '')).trim().replace(/\n/g, '<br>');
             recBox.appendChild(recTitle); recBox.appendChild(recText); recBody.appendChild(recBox); recCard.appendChild(recBody);
             scroll.appendChild(recCard);
         }
@@ -243,17 +195,14 @@ Your final recommendation with clear explanation
         function parseOptionPC(option, text) {
             const optEsc = escRe(option.trim());
             // Match OPTION: <name> section
-            const sectionRe = new RegExp(`OPTION:\s*${optEsc}([\s\S]*?)(?=OPTION:|$)`, 'i');
+            const sectionRe = new RegExp(`OPTION:\\s*${optEsc}([\\s\\S]*?)(?=OPTION:|$)`, 'i');
             const sectionMatch = text.match(sectionRe);
             if (!sectionMatch) return { pros: [], cons: [] };
             
             const section = sectionMatch[1];
             
             // Extract PROS line
-            const prosRe = /PROS:\s*(.+?)(?=\
-CONS:|\
-\
-|$)/is;
+            const prosRe = /PROS:\s*(.+?)(?=\nCONS:|\n\n|$)/is;
             const prosMatch = section.match(prosRe);
             let pros = [];
             if (prosMatch) {
@@ -263,9 +212,7 @@ CONS:|\
             }
             
             // Extract CONS line
-            const consRe = /CONS:\s*(.+?)(?=\
-\
-|$)/is;
+            const consRe = /CONS:\s*(.+?)(?=\n\n|$)/is;
             const consMatch = section.match(consRe);
             let cons = [];
             if (consMatch) {

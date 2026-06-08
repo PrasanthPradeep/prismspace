@@ -25,6 +25,10 @@ yarn-error.log*
 # local env files
 .env
 .env*.local
+backend/.env
+
+# Extension packages (built for distribution)
+prismspace-*.zip
 
 # vercel
 .vercel

@@ -1,6 +1,7 @@
 
-        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
-        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        // AI calls now routed through Prism Cloud Run backend via prism-backend-adapter.js
+        // No API keys or AI SDK needed in the extension.
+
         let busy = false;
         let explainDiff = false;
         let history = JSON.parse(localStorage.getItem('ct_history') || '[]');
@@ -19,64 +20,19 @@
             btn.classList.toggle('on', explainDiff);
             if (!explainDiff) document.getElementById('diffSection').style.display = 'none';
         }
-
-
-
-        function getGroqError(xhr) {
-            try {
-                const payload = JSON.parse(xhr.responseText);
-                if (payload && payload.error) {
-                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
-                }
-            } catch (_) { }
-            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
-        }
-
-        function buildGroqPayload(messages, opts) {
-            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
-            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
-                payload.max_completion_tokens = payload.max_tokens;
-            }
-            delete payload.max_tokens;
-            if (payload.reasoning_effort == null) {
-                payload.reasoning_effort = 'medium';
-            }
-            return payload;
-        }
-
-        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        // XHR streaming — now proxied through Prism Cloud Run backend
+        // The xhrStream signature is kept intact so all call sites work unchanged.
         function xhrStream(messages, opts, onChunk, onDone, onErr) {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', GROQ_API_URL, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let pos = 0;
-                function parse() {
-                    const raw = xhr.responseText;
-                    if (raw.length <= pos) return;
-                    const nt = raw.slice(pos); pos = raw.length;
-                    nt.split('\
-').forEach(line => {
-                        if (!line.startsWith('data: ')) return;
-                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
-                        try { const tok = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (tok) onChunk(tok); } catch (_) { }
-                    });
-                }
-                xhr.onprogress = parse;
-                xhr.onload = () => {
-                    parse();
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        onDone && onDone();
-                        return;
-                    }
-                    onErr && onErr(getGroqError(xhr));
-                };
-                xhr.onerror = () => onErr && onErr('Network error');
-                xhr.ontimeout = () => onErr && onErr('Timeout');
-                xhr.timeout = 120000;
-                xhr.send(JSON.stringify(buildGroqPayload(messages, opts)));
-            } catch (e) { onErr && onErr(e.message); }
+            var fromLang = (document.getElementById('fromLang') || {}).value || 'JavaScript';
+            var toLang   = (document.getElementById('toLang') || {}).value || 'Python';
+            // Detect whether this is a diff-explain call (messages[0].content includes 'differ')
+            var isDiff = messages[0] && messages[0].content && messages[0].content.toLowerCase().indexOf('differ') !== -1;
+            var promptKey = isDiff ? 'code-translate-diff' : 'code-translate';
+            var userMsg = messages[messages.length - 1];
+            var input = userMsg ? userMsg.content : '';
+            window.PrismBackend.stream(promptKey, input, { fromLang: fromLang, toLang: toLang }, onChunk, onDone, onErr);
         }
+
 
         function convertCode() {
             if (busy) return;
@@ -129,12 +85,10 @@ ${src}\
 ${to} translation:\
 ${dst}` }],
                 { max_tokens: 800, temperature: 0.5 },
-                (tok) => { full += tok; diffContent.innerHTML = full.replace(/\
-/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+                (tok) => { full += tok; diffContent.innerHTML = full.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
                 () => {
                     const cur = diffContent.querySelector('.streaming-cursor'); if (cur) cur.remove();
-                    diffContent.innerHTML = full.replace(/\
-/g, '<br>');
+                    diffContent.innerHTML = full.replace(/\n/g, '<br>');
                     busy = false; document.getElementById('convBtn').disabled = false;
                 },
                 (e) => {

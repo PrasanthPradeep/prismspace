@@ -5,13 +5,20 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "wxt",
-    "build": "wxt build",
-    "zip": "wxt zip",
+    "dev": "wxt -b chrome --mv3",
+    "dev:chrome": "wxt -b chrome --mv3",
+    "dev:firefox": "wxt -b firefox --mv3",
+    "build": "pnpm run build:chrome && pnpm run build:firefox",
+    "build:chrome": "wxt build -b chrome --mv3",
+    "build:firefox": "wxt build -b firefox --mv3",
+    "zip": "pnpm run zip:chrome && pnpm run zip:firefox",
+    "zip:chrome": "wxt zip -b chrome --mv3",
+    "zip:firefox": "wxt zip -b firefox --mv3",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx --max-warnings=0",
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "firebase": "^12.14.0",
     "lucide-react": "^1.16.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

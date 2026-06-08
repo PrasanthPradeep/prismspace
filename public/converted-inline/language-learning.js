@@ -1,6 +1,7 @@
 
-        const GROQ_API_URL = 'https://prism-ai-browser-api-hcb9hra7e8eecjca.centralindia-01.azurewebsites.net/api/prism_groq_devspace';
-        const GROQ_MODEL = 'openai/gpt-oss-120b';
+        // AI calls now routed through Prism Cloud Run backend via prism-backend-adapter.js
+        // No API keys or AI SDK needed in the extension.
+
         let busy = false;
         let stats = JSON.parse(localStorage.getItem('ll_stats') || '{"w":0,"s":0,"m":0,"t":0}');
 
@@ -24,61 +25,29 @@
 
 
 
-        function getGroqError(xhr) {
-            try {
-                const payload = JSON.parse(xhr.responseText);
-                if (payload && payload.error) {
-                    return typeof payload.error === 'string' ? payload.error : (payload.error.message || 'Groq request failed');
-                }
-            } catch (_) { }
-            return xhr.status === 0 ? 'Network error or blocked request' : `Groq request failed (${xhr.status})`;
-        }
-
-        function buildGroqPayload(messages, opts) {
-            const payload = Object.assign({ model: GROQ_MODEL, messages, stream: true }, opts || {});
-            if (payload.max_tokens != null && payload.max_completion_tokens == null) {
-                payload.max_completion_tokens = payload.max_tokens;
-            }
-            delete payload.max_tokens;
-            if (payload.reasoning_effort == null) {
-                payload.reasoning_effort = 'medium';
-            }
-            return payload;
-        }
-
-        // XHR streaming helper — calls Azure proxy (no API key needed client-side)
+        // Streaming helper — now proxied through Prism Cloud Run backend
+        // The system message content is used to detect which mode is active:
+        //   tutor/conversation, translate, grammar check, or vocab generation.
         function stream(messages, onChunk, onDone, onErr) {
-            try {
-                const xhr = new XMLHttpRequest();
-                xhr.open('POST', GROQ_API_URL, true);
-                xhr.setRequestHeader('Content-Type', 'application/json');
-                let pos = 0;
-                function parse() {
-                    const raw = xhr.responseText;
-                    if (raw.length <= pos) return;
-                    const nt = raw.slice(pos); pos = raw.length;
-                    nt.split('\
-').forEach(line => {
-                        if (!line.startsWith('data: ')) return;
-                        const d = line.slice(6).trim(); if (d === '[DONE]') return;
-                        try { const c = JSON.parse(d)?.choices?.[0]?.delta?.content || ''; if (c) onChunk(c); } catch (_) { }
-                    });
-                }
-                xhr.onprogress = parse;
-                xhr.onload = () => {
-                    parse();
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        onDone && onDone();
-                        return;
-                    }
-                    onErr && onErr(getGroqError(xhr));
-                };
-                xhr.onerror = () => onErr && onErr('Network error');
-                xhr.ontimeout = () => onErr && onErr('Timeout');
-                xhr.timeout = 120000;
-                xhr.send(JSON.stringify(buildGroqPayload(messages, { max_tokens: 2500, temperature: 0.7 })));
-            } catch (e) { onErr && onErr(e.message); }
+            var lang = typeof getLang === 'function' ? getLang() : 'Spanish';
+            var sys = messages[0] && messages[0].content ? messages[0].content.toLowerCase() : '';
+            var userMsg = messages[messages.length - 1];
+            var input = userMsg ? userMsg.content : '';
+            var promptKey;
+            if (sys.indexOf('vocab') !== -1 || sys.indexOf('json array') !== -1) {
+                promptKey = 'language-vocab';
+                // For vocab, the user input is the topic
+                input = input.replace('Topic: ', '');
+            } else if (sys.indexOf('grammar') !== -1 || sys.indexOf('check for errors') !== -1) {
+                promptKey = 'language-grammar';
+            } else if (sys.indexOf('translat') !== -1 && sys.indexOf('tutor') === -1) {
+                promptKey = 'language-translate';
+            } else {
+                promptKey = 'language-conversation';
+            }
+            window.PrismBackend.stream(promptKey, input, { targetLang: lang }, onChunk, onDone, onErr);
         }
+
 
         async function sendMsg() {
             if (busy) return;
@@ -98,30 +67,26 @@
             ], (chunk) => {
                 full += chunk;
                 const main = full.split('---EN---')[0];
-                atxt.innerHTML = main.trim().replace(/\
-/g, '<br>') + '<span class="streaming-cursor"></span>';
+                atxt.innerHTML = main.trim().replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>';
                 msgs.scrollTop = msgs.scrollHeight;
             }, () => {
                 const cur = atxt.querySelector('.streaming-cursor'); if (cur) cur.remove();
                 const parts = full.split('---EN---');
-                atxt.innerHTML = (parts[0] || '').trim().replace(/\
-/g, '<br>');
+                atxt.innerHTML = (parts[0] || '').trim().replace(/\n/g, '<br>');
                 if (parts[1]) {
                     const sub = parts[1].split('---FIX---');
                     const enText = (sub[0] || '').trim();
                     const fix = (sub[1] || '').trim();
                     if (enText) {
                         const tog = document.createElement('div'); tog.className = 'trans-toggle'; tog.textContent = '🔤 Show English';
-                        const tDiv = document.createElement('div'); tDiv.className = 'trans-text'; tDiv.innerHTML = enText.replace(/\
-/g, '<br>');
+                        const tDiv = document.createElement('div'); tDiv.className = 'trans-text'; tDiv.innerHTML = enText.replace(/\n/g, '<br>');
                         let on = false; tog.onclick = () => { on = !on; tDiv.style.display = on ? 'block' : 'none'; tog.textContent = on ? '🔤 Hide English' : '🔤 Show English'; };
                         ab.appendChild(tog); ab.appendChild(tDiv);
                     }
                     if (fix) {
                         const fd = document.createElement('div');
                         fd.style.cssText = 'margin-top:8px;padding:8px;background:rgba(245,158,11,0.1);border-radius:8px;font-size:12px;color:#fbbf24;border-left:2px solid #f59e0b';
-                        fd.innerHTML = '✏️ ' + fix.replace(/\
-/g, '<br>'); ab.appendChild(fd);
+                        fd.innerHTML = '✏️ ' + fix.replace(/\n/g, '<br>'); ab.appendChild(fd);
                     }
                 }
                 stats.m++; save();
@@ -143,8 +108,7 @@
 \
 Grammar Notes: [explanation]` },
                 { role: 'user', content: inp }
-            ], (c) => { txt += c; el.innerHTML = txt.replace(/\
-/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+            ], (c) => { txt += c; el.innerHTML = txt.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
                 () => { const cur = el.querySelector('.streaming-cursor'); if (cur) cur.remove(); stats.t++; save(); document.getElementById('transBtn').disabled = false; },
                 (e) => { el.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`; document.getElementById('transBtn').disabled = false; });
         }
@@ -159,8 +123,7 @@ Grammar Notes: [explanation]` },
                 { role: 'system', content: `You are a ${lang} grammar expert. Check for errors. List each error with the original, correction, and a gentle explanation. End encouragingly.` },
                 { role: 'user', content: `Check this ${lang} text:\
 "${inp}"` }
-            ], (c) => { txt += c; el.innerHTML = txt.replace(/\
-/g, '<br>') + '<span class="streaming-cursor"></span>'; },
+            ], (c) => { txt += c; el.innerHTML = txt.replace(/\n/g, '<br>') + '<span class="streaming-cursor"></span>'; },
                 () => { const cur = el.querySelector('.streaming-cursor'); if (cur) cur.remove(); stats.s++; save(); document.getElementById('grammarBtn').disabled = false; },
                 (e) => { el.innerHTML = `<span style="color:#f87171">⚠️ ${e}</span>`; document.getElementById('grammarBtn').disabled = false; });
         }
