@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prism Space — Your AI-Powered Browser Workspace</title>
+  <meta name="description" content="Prism Space is an AI-powered browser extension that replaces your new tab with a smart productivity workspace. Summarize pages, generate notes, chat with content — all powered by Google Gemini." />
+  <meta name="theme-color" content="#0a0a1a" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Prism Space — AI Browser Workspace" />
+  <meta property="og:description" content="Your AI-powered new tab workspace. Summarize, chat, take notes — powered by Google Gemini." />
+  <meta property="og:type" content="website" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Navigation                                                              -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <nav id="main-nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand">
+        <img src="images/prismSpaceRebranded.png" alt="Prism Space Logo" class="nav-logo-img" />
+        <span>Prism Space</span>
+      </a>
+      <div class="nav-links">
+        <a href="#showcase">Showcase</a>
+        <a href="#features">Features</a>
+        <a href="#ai-tools">AI Tools</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#install" class="nav-cta">Get Extension</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Hero                                                                    -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="hero">
+    <div class="hero-glow hero-glow--1"></div>
+    <div class="hero-glow hero-glow--2"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="hero-badge-dot"></span>
+        Powered by Google Gemini 2.0 Flash
+      </div>
+      <h1>Your Space<br/><span class="gradient-text">on the Internet</span></h1>
+      <p class="hero-subtitle">
+        Prism Space replaces your new tab with an AI-powered workspace.
+        Summarize any page, generate study notes, chat with content, and access
+        20+ developer tools — all inside your browser.
+      </p>
+      <div class="hero-actions">
+        <a href="#install" class="btn btn-primary" id="hero-install-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Install Extension
+        </a>
+        <a href="#features" class="btn btn-ghost" id="hero-learn-btn">
+          Learn More
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-value">20+</span>
+          <span class="stat-label">AI Tools</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">MV3</span>
+          <span class="stat-label">Manifest V3</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-value">2</span>
+          <span class="stat-label">Browsers</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Floating mock browser window -->
+    <div class="hero-visual">
+      <div class="mock-browser">
+        <div class="mock-browser-bar">
+          <div class="mock-dot mock-dot--red"></div>
+          <div class="mock-dot mock-dot--yellow"></div>
+          <div class="mock-dot mock-dot--green"></div>
+          <div class="mock-address-bar">chrome://newtab → Prism Space</div>
+        </div>
+        <div class="mock-browser-body">
+          <img src="images/Screenshot_homepage.png" alt="Prism Space Homepage Dashboard" class="mock-browser-screenshot" />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Product Showcase                                                        -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="showcase">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Interactive Tour</span>
+        <h2>Designed to elevate<br/><span class="gradient-text">your browsing experience</span></h2>
+        <p class="section-desc">
+          Take a look inside the workspace and see how Prism Space integrates seamlessly into your daily workflow.
+        </p>
+      </div>
+
+      <div class="showcase-container">
+        <div class="showcase-tabs">
+          <button class="showcase-tab active" data-target="sc-homepage">
+            <span class="tab-number">01</span>
+            <span class="tab-title">New Tab Dashboard</span>
+          </button>
+          <button class="showcase-tab" data-target="sc-sidebar">
+            <span class="tab-number">02</span>
+            <span class="tab-title">AI Assistant Sidebar</span>
+          </button>
+          <button class="showcase-tab" data-target="sc-popup">
+            <span class="tab-number">03</span>
+            <span class="tab-title">Extension Popup</span>
+          </button>
+          <button class="showcase-tab" data-target="sc-devtools">
+            <span class="tab-number">04</span>
+            <span class="tab-title">Developer Workspace</span>
+          </button>
+          <button class="showcase-tab" data-target="sc-settings">
+            <span class="tab-number">05</span>
+            <span class="tab-title">Customizable Settings</span>
+          </button>
+        </div>
+
+        <div class="showcase-display">
+          <div class="showcase-view active" id="sc-homepage">
+            <div class="showcase-text">
+              <h3>Personalized Productivity Hub</h3>
+              <p>Replaces your default browser new tab page with a minimalist dashboard featuring local weather, dynamic greeting, customizable quick links, quotes, and notepad.</p>
+            </div>
+            <div class="showcase-visual-wrap">
+              <div class="mock-browser-mini">
+                <div class="mock-browser-bar-mini">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </div>
+                <img src="images/Screenshot_homepage.png" alt="New Tab Dashboard" class="showcase-img" />
+              </div>
+            </div>
+          </div>
+
+          <div class="showcase-view" id="sc-sidebar">
+            <div class="showcase-text">
+              <h3>Context-Aware AI Sidebar</h3>
+              <p>Summon a floating companion panel on any webpage. Highlight text to explain concepts, generate detailed study notes, summarize long articles, or chat directly with the page content.</p>
+            </div>
+            <div class="showcase-visual-wrap">
+              <div class="mock-browser-mini">
+                <div class="mock-browser-bar-mini">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </div>
+                <img src="images/Screenshot_floating-panel.png" alt="AI Assistant Sidebar" class="showcase-img" />
+              </div>
+            </div>
+          </div>
+
+          <div class="showcase-view" id="sc-popup">
+            <div class="showcase-text">
+              <h3>One-Click Extension Actions</h3>
+              <p>Click the extension icon for immediate access to quick summaries, core action buttons, and configuration options without breaking your browsing state.</p>
+            </div>
+            <div class="showcase-visual-wrap">
+              <div class="mock-browser-mini">
+                <div class="mock-browser-bar-mini">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </div>
+                <img src="images/Screenshot_popup.png" alt="Extension Popup" class="showcase-img" />
+              </div>
+            </div>
+          </div>
+
+          <div class="showcase-view" id="sc-devtools">
+            <div class="showcase-text">
+              <h3>Built-in Developer Workspace</h3>
+              <p>Access over 20+ utility web tools such as JSON converters, regex tools, encryption helpers, Markdown editors, and prompt synthesizers built right inside your tab.</p>
+            </div>
+            <div class="showcase-visual-wrap">
+              <div class="mock-browser-mini">
+                <div class="mock-browser-bar-mini">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </div>
+                <img src="images/Screenshot_devtools.png" alt="Developer Workspace" class="showcase-img" />
+              </div>
+            </div>
+          </div>
+
+          <div class="showcase-view" id="sc-settings">
+            <div class="showcase-text">
+              <h3>Tailor to Your Preference</h3>
+              <p>Full-fledged customization panels to manage your preferences, keyboard shortcuts, security settings, syncing mechanisms, and custom background wallpapers.</p>
+            </div>
+            <div class="showcase-visual-wrap">
+              <div class="mock-browser-mini">
+                <div class="mock-browser-bar-mini">
+                  <span class="dot-red"></span><span class="dot-yellow"></span><span class="dot-green"></span>
+                </div>
+                <img src="images/Screenshot_prismspace-settings.png" alt="Customizable Settings" class="showcase-img" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Features                                                                -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="features">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Core Features</span>
+        <h2>AI that understands<br/><span class="gradient-text">your browsing context</span></h2>
+        <p class="section-desc">
+          Prism's AI assistant reads the page you're on and delivers instant, context-aware intelligence.
+        </p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card feature-card--large" id="feature-summarize">
+          <div class="feature-icon">📄</div>
+          <h3>Smart Summarization</h3>
+          <p>Get a TL;DR, Key Insights, and Action Items from any webpage in seconds. Perfect for research, news, and documentation.</p>
+          <div class="feature-demo">
+            <div class="demo-output">
+              <div class="demo-line"><span class="demo-label">TL;DR</span> This article explores the impact of transformer architectures on...</div>
+              <div class="demo-line"><span class="demo-label">Key Insights</span></div>
+              <div class="demo-bullet">• Multi-head attention enables parallel processing</div>
+              <div class="demo-bullet">• Positional encoding preserves sequence order</div>
+              <div class="demo-line"><span class="demo-label">Action Items</span></div>
+              <div class="demo-bullet">• Review the attention visualization notebook</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature-card" id="feature-notes">
+          <div class="feature-icon">📝</div>
+          <h3>Study Notes</h3>
+          <p>Auto-generate structured study notes with definitions, concepts, examples, and revision prompts.</p>
+        </div>
+
+        <div class="feature-card" id="feature-chat">
+          <div class="feature-icon">💬</div>
+          <h3>Page-Aware Chat</h3>
+          <p>Ask questions about any webpage. The AI uses extracted page content as its knowledge base.</p>
+        </div>
+
+        <div class="feature-card" id="feature-explain">
+          <div class="feature-icon">🔎</div>
+          <h3>Selection Explainer</h3>
+          <p>Highlight text on any page and get a plain-language explanation connected to the broader context.</p>
+        </div>
+
+        <div class="feature-card" id="feature-interview">
+          <div class="feature-icon">🎯</div>
+          <h3>Interview Prep</h3>
+          <p>Generate Basic, Intermediate, and Advanced interview questions from any technical article.</p>
+        </div>
+
+        <div class="feature-card" id="feature-save">
+          <div class="feature-icon">☁️</div>
+          <h3>Cloud Sync</h3>
+          <p>Save pages with AI-generated summaries to your personal space. Firebase Auth keeps your data private and synced.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- AI Dev Tools                                                            -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="ai-tools">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Dev Space</span>
+        <h2>20+ AI-powered<br/><span class="gradient-text">developer tools</span></h2>
+        <p class="section-desc">
+          A full productivity suite built into your browser. Every AI tool routes through the Gemini-powered backend.
+        </p>
+      </div>
+
+      <div class="tools-grid">
+        <div class="tool-card" id="tool-code-explainer">
+          <div class="tool-icon">🧠</div>
+          <h4>Code Explainer</h4>
+          <p>Brief overview, line-by-line, or beginner-friendly explanations</p>
+        </div>
+        <div class="tool-card" id="tool-code-translator">
+          <div class="tool-icon">🔄</div>
+          <h4>Code Translator</h4>
+          <p>Translate code between languages with idiomatic conversion</p>
+        </div>
+        <div class="tool-card" id="tool-writing-assistant">
+          <div class="tool-icon">✍️</div>
+          <h4>Writing Assistant</h4>
+          <p>Improve, simplify, formalize, or grammar-check your writing</p>
+        </div>
+        <div class="tool-card" id="tool-language-learning">
+          <div class="tool-icon">🌍</div>
+          <h4>Language Learning</h4>
+          <p>AI conversation tutor, grammar checker, vocabulary builder</p>
+        </div>
+        <div class="tool-card" id="tool-decision-analyzer">
+          <div class="tool-icon">⚖️</div>
+          <h4>Decision Analyzer</h4>
+          <p>Structured multi-criteria decision analysis with scored matrices</p>
+        </div>
+        <div class="tool-card" id="tool-prompt-synthesizer">
+          <div class="tool-icon">🔬</div>
+          <h4>Prompt Synthesizer</h4>
+          <p>Improve and optimize your AI prompts with expert engineering</p>
+        </div>
+        <div class="tool-card" id="tool-json-toolkit">
+          <div class="tool-icon">{ }</div>
+          <h4>JSON Toolkit</h4>
+          <p>Format, validate, diff, and transform JSON data</p>
+        </div>
+        <div class="tool-card" id="tool-regex-workbench">
+          <div class="tool-icon">.*</div>
+          <h4>Regex Workbench</h4>
+          <p>Build and test regular expressions with live matching</p>
+        </div>
+        <div class="tool-card" id="tool-color-gen">
+          <div class="tool-icon">🎨</div>
+          <h4>Color Generator</h4>
+          <p>Create and explore harmonious color palettes</p>
+        </div>
+        <div class="tool-card" id="tool-crypto-utils">
+          <div class="tool-icon">🔐</div>
+          <h4>Crypto Utils</h4>
+          <p>Hash, encode, decode — SHA, Base64, UUID, and more</p>
+        </div>
+        <div class="tool-card" id="tool-markdown-editor">
+          <div class="tool-icon">📋</div>
+          <h4>Markdown Editor</h4>
+          <p>Write and preview Markdown with live rendering</p>
+        </div>
+        <div class="tool-card" id="tool-more">
+          <div class="tool-icon">+7</div>
+          <h4>And More…</h4>
+          <p>Notepad, Checklist, Habit Tracker, Bookmarks, Git Ref, and more</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Architecture                                                            -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="architecture">
+    <div class="section-inner">
+      <div class="section-header">
+        <span class="section-tag">Technical Architecture</span>
+        <h2>Built on<br/><span class="gradient-text">Google Cloud</span></h2>
+        <p class="section-desc">
+          Production-grade infrastructure with intelligent AI provider fallback, secure authentication, and real-time data persistence.
+        </p>
+      </div>
+
+      <div class="arch-flow">
+        <div class="arch-node arch-node--ext" id="arch-extension">
+          <div class="arch-node-icon">🧩</div>
+          <h4>Browser Extension</h4>
+          <p>WXT + React + TypeScript<br/>Manifest V3 (Chrome & Firefox)</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-node--run" id="arch-cloudrun">
+          <div class="arch-node-icon">☁️</div>
+          <h4>Cloud Run</h4>
+          <p>Express.js Backend<br/>AI Provider Abstraction Layer</p>
+        </div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-node arch-node--ai" id="arch-gemini">
+          <div class="arch-node-icon">✦</div>
+          <h4>Gemini 2.0 Flash</h4>
+          <p>Primary AI Engine<br/>@google/genai SDK</p>
+        </div>
+      </div>
+
+      <div class="arch-services">
+        <div class="arch-service" id="arch-firestore">
+          <span class="arch-service-badge">Database</span>
+          <strong>Cloud Firestore</strong>
+          <p>User data, saved pages, notes, chat history with per-user security rules</p>
+        </div>
+        <div class="arch-service" id="arch-auth">
+          <span class="arch-service-badge">Auth</span>
+          <strong>Firebase Auth</strong>
+          <p>Google OAuth 2.0 + Email/Password with Chrome Identity API</p>
+        </div>
+        <div class="arch-service" id="arch-build">
+          <span class="arch-service-badge">CI/CD</span>
+          <strong>Cloud Build</strong>
+          <p>Automated Docker container builds and GCR image registry</p>
+        </div>
+        <div class="arch-service" id="arch-fallback">
+          <span class="arch-service-badge">Resilience</span>
+          <strong>Multi-Provider Fallback</strong>
+          <p>Gemini → Groq → Groq-Proxy with error classification and auto-cascade</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- CTA / Install                                                           -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <section id="install">
+    <div class="section-inner cta-section">
+      <div class="cta-glow"></div>
+      <h2>Ready to transform<br/><span class="gradient-text">your browser?</span></h2>
+      <p class="section-desc">
+        Available for Chrome and Firefox. Free and open-source.
+      </p>
+      <div class="cta-buttons">
+        <a href="https://github.com/PrasanthPradeep/prismspace" target="_blank" rel="noopener" class="btn btn-primary" id="cta-github-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+          View on GitHub
+        </a>
+        <a href="https://prismspace-backend-vk4s7gl22q-el.a.run.app/health" target="_blank" rel="noopener" class="btn btn-ghost" id="cta-health-btn">
+          Check Backend Health →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <!-- Footer                                                                  -->
+  <!-- ════════════════════════════════════════════════════════════════════════ -->
+  <footer id="main-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <img src="images/prismSpaceRebranded.png" alt="Prism Space Logo" class="nav-logo-img" />
+        <span>Prism Space</span>
+      </div>
+      <p class="footer-tagline">Built by <a href="https://prismbrowser.tech" target="_blank" rel="noopener">Prism AI Labs</a></p>
+      <p class="footer-copy">© 2025 Prism AI Labs. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
